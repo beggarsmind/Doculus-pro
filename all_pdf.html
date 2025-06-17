@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>All PDF Tools - Doculus Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+      body {
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+      }
+      .card {
+        transition: all 0.3s ease;
+      }
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      }
+      .feature-icon {
+        transition: all 0.3s ease;
+      }
+      .card:hover .feature-icon {
+        transform: scale(1.1);
+      }
+      .page {
+        transition: opacity 0.5s ease, transform 0.5s ease;
+      }
+      .page.hidden {
+        opacity: 0;
+        transform: translateY(20px);
+        pointer-events: none;
+        position: absolute;
+      }
+
+      .tool-item {
+        transition: all 0.2s ease;
+      }
+      .tool-item:hover {
+        background-color: rgba(59, 130, 246, 0.1);
+        transform: translateX(5px);
+      }
+      .header-gradient {
+        background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+      }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <!-- Header styled like index.html -->
+    <header class="header fixed top-0 left-0 w-full z-50 bg-white shadow">
+      <div class="container mx-auto px-2 sm:px-4">
+        <div class="flex items-center justify-between h-[60px] sm:h-[70px]">
+          <div class="flex items-center">
+            <a href="index.html" class="flex items-center">
+              <img
+                src="images/D3.png"
+                alt="Doculus Pro Logo"
+                class="w-14 h-14 sm:w-14 sm:h-14 object-contain"
+              />
+              <span
+                class="ml-1 sm:ml-2 text-lg sm:text-xl font-bold text-gray-800"
+                >Doculus Pro</span
+              >
+            </a>
+          </div>
+          <nav class="hidden md:flex items-center space-x-6">
+            <a
+              href="index.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Home</a
+            >
+            <a
+              href="Merge_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Merge PDF</a
+            >
+            <a
+              href="Split_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Split PDF</a
+            >
+            <a
+              href="Compress_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Compress PDF</a
+            >
+            <a href="all_pdf.html" class="nav-link text-red-600 font-bold"
+              >All PDF Tools</a
+            >
+          </nav>
+          <!-- Mobile Menu Button -->
+          <div class="md:hidden">
+            <button
+              id="menu-toggle"
+              class="focus:outline-none"
+              aria-label="Toggle menu"
+              type="button"
+            >
+              <div class="hamburger">
+                <div class="w-6 h-0.5 bg-gray-700 mb-1.5"></div>
+                <div class="w-6 h-0.5 bg-gray-700 mb-1.5"></div>
+                <div class="w-6 h-0.5 bg-gray-700"></div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div
+      id="mobile-menu"
+      class="mobile-menu fixed top-[60px] sm:top-[70px] left-0 w-full h-[calc(100vh-60px)] sm:h-[calc(100vh-70px)] bg-white z-40 md:hidden hidden"
+    >
+      <div class="p-4">
+        <nav class="space-y-1">
+          <a
+            href="index.html"
+            class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+            >Home</a
+          >
+          <a
+            href="Merge_PDF.html"
+            class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+            >Merge PDF</a
+          >
+          <a
+            href="Split_PDF.html"
+            class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+            >Split PDF</a
+          >
+          <a
+            href="Compress_PDF.html"
+            class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+            >Compress PDF</a
+          >
+          <a
+            href="all_pdf.html"
+            class="block py-3 px-4 text-red-600 font-bold rounded-md"
+            >All PDF Tools</a
+          >
+          <!-- Mobile Convert PDF Dropdown (optional) -->
+        </nav>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div
+      id="home"
+      class="page container mx-auto px-2 pt-24 sm:pt-32 pb-6 sm:pb-8 max-w-full sm:max-w-2xl"
+    >
+      <div class="text-center mb-6 sm:mb-8">
+        <h2
+          class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-1 sm:mb-2 flex items-center justify-center gap-2"
+        >
+          <img
+            src="images/D3.png"
+            alt="Doculus Pro Logo"
+            class="inline-block w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 object-contain mx-1"
+          />
+          All PDF Tools
+        </h2>
+        <p class="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
+          All your favorite PDF tools in one place. Tap a tool to get started!
+        </p>
+      </div>
+      <div class="flex flex-col gap-2 sm:gap-3">
+        <!-- Tool List: One per row, compact, engaging -->
+        <a
+          href="Merge_PDF.html"
+          class="tool-item flex items-center gap-3 sm:gap-4 bg-white rounded-xl shadow-sm px-3 sm:px-4 py-2 sm:py-3 hover:bg-indigo-50 transition group"
+        >
+          <span class="bg-indigo-100 text-indigo-600 rounded-lg p-2"
+            ><i class="fas fa-object-group text-base sm:text-lg"></i
+          ></span>
+          <span class="font-semibold text-gray-800 flex-1 text-sm sm:text-base"
+            >Merge PDF</span
+          >
+          <span class="text-indigo-400 group-hover:text-indigo-600 transition"
+            ><i class="fas fa-arrow-right"></i
+          ></span>
+        </a>
+        <a
+          href="Split_PDF.html"
+          class="tool-item flex items-center gap-3 sm:gap-4 bg-white rounded-xl shadow-sm px-3 sm:px-4 py-2 sm:py-3 hover:bg-red-50 transition group"
+        >
+          <span class="bg-red-100 text-red-600 rounded-lg p-2"
+            ><i class="fas fa-cut text-base sm:text-lg"></i
+          ></span>
+          <span class="font-semibold text-gray-800 flex-1 text-sm sm:text-base"
+            >Split PDF</span
+          >
+          <span class="text-red-400 group-hover:text-red-600 transition"
+            ><i class="fas fa-arrow-right"></i
+          ></span>
+        </a>
+        <a
+          href="Compress_PDF.html"
+          class="tool-item flex items-center gap-3 sm:gap-4 bg-white rounded-xl shadow-sm px-3 sm:px-4 py-2 sm:py-3 hover:bg-green-50 transition group"
+        >
+          <span class="bg-green-100 text-green-600 rounded-lg p-2"
+            ><i class="fas fa-compress-arrows-alt text-base sm:text-lg"></i
+          ></span>
+          <span class="font-semibold text-gray-800 flex-1 text-sm sm:text-base"
+            >Compress PDF</span
+          >
+          <span class="text-green-400 group-hover:text-green-600 transition"
+            ><i class="fas fa-arrow-right"></i
+          ></span>
+        </a>
+        <a
+          href="Convert_PDF/JPG_to_PDF.html"
+          class="tool-item flex items-center gap-3 sm:gap-4 bg-white rounded-xl shadow-sm px-3 sm:px-4 py-2 sm:py-3 hover:bg-blue-50 transition group"
+        >
+          <span class="bg-blue-100 text-blue-600 rounded-lg p-2"
+            ><i class="fas fa-file-image text-base sm:text-lg"></i
+          ></span>
+          <span class="font-semibold text-gray-800 flex-1 text-sm sm:text-base"
+            >JPG to PDF</span
+          >
+          <span class="text-blue-400 group-hover:text-blue-600 transition"
+            ><i class="fas fa-arrow-right"></i
+          ></span>
+        </a>
+        <a
+          href="Convert_PDF/PDF_to_JPG.html"
+          class="tool-item flex items-center gap-3 sm:gap-4 bg-white rounded-xl shadow-sm px-3 sm:px-4 py-2 sm:py-3 hover:bg-purple-50 transition group"
+        >
+          <span class="bg-purple-100 text-purple-600 rounded-lg p-2"
+            ><i class="fas fa-file-image text-base sm:text-lg"></i
+          ></span>
+          <span class="font-semibold text-gray-800 flex-1 text-sm sm:text-base"
+            >PDF to JPG</span
+          >
+          <span class="text-purple-400 group-hover:text-purple-600 transition"
+            ><i class="fas fa-arrow-right"></i
+          ></span>
+        </a>
+        <a
+          href="Convert_PDF/Remove_PDF.html"
+          class="tool-item flex items-center gap-3 sm:gap-4 bg-white rounded-xl shadow-sm px-3 sm:px-4 py-2 sm:py-3 hover:bg-pink-50 transition group"
+        >
+          <span class="bg-pink-100 text-pink-600 rounded-lg p-2"
+            ><i class="fas fa-trash-alt text-base sm:text-lg"></i
+          ></span>
+          <span class="font-semibold text-gray-800 flex-1 text-sm sm:text-base"
+            >Remove Pages</span
+          >
+          <span class="text-pink-400 group-hover:text-pink-600 transition"
+            ><i class="fas fa-arrow-right"></i
+          ></span>
+        </a>
+        <a
+          href="Convert_PDF/Extract_Pages.html"
+          class="tool-item flex items-center gap-3 sm:gap-4 bg-white rounded-xl shadow-sm px-3 sm:px-4 py-2 sm:py-3 hover:bg-yellow-50 transition group"
+        >
+          <span class="bg-yellow-100 text-yellow-600 rounded-lg p-2"
+            ><i class="fas fa-copy text-base sm:text-lg"></i
+          ></span>
+          <span class="font-semibold text-gray-800 flex-1 text-sm sm:text-base"
+            >Extract Pages</span
+          >
+          <span class="text-yellow-400 group-hover:text-yellow-600 transition"
+            ><i class="fas fa-arrow-right"></i
+          ></span>
+        </a>
+        <a
+          href="Convert_PDF/Organize_PDF.html"
+          class="tool-item flex items-center gap-3 sm:gap-4 bg-white rounded-xl shadow-sm px-3 sm:px-4 py-2 sm:py-3 hover:bg-teal-50 transition group"
+        >
+          <span class="bg-teal-100 text-teal-600 rounded-lg p-2"
+            ><i class="fas fa-sort text-base sm:text-lg"></i
+          ></span>
+          <span class="font-semibold text-gray-800 flex-1 text-sm sm:text-base"
+            >Organize PDF</span
+          >
+          <span class="text-teal-400 group-hover:text-teal-600 transition"
+            ><i class="fas fa-arrow-right"></i
+          ></span>
+        </a>
+        <a
+          href="Convert_PDF/Repair_pdf.html"
+          class="tool-item flex items-center gap-3 sm:gap-4 bg-white rounded-xl shadow-sm px-3 sm:px-4 py-2 sm:py-3 hover:bg-orange-50 transition group"
+        >
+          <span class="bg-orange-100 text-orange-600 rounded-lg p-2"
+            ><i class="fas fa-wrench text-base sm:text-lg"></i
+          ></span>
+          <span class="font-semibold text-gray-800 flex-1 text-sm sm:text-base"
+            >Repair PDF</span
+          >
+          <span class="text-orange-400 group-hover:text-orange-600 transition"
+            ><i class="fas fa-arrow-right"></i
+          ></span>
+        </a>
+        <a
+          href="Convert_PDF/Rotate_PDF.html"
+          class="tool-item flex items-center gap-3 sm:gap-4 bg-white rounded-xl shadow-sm px-3 sm:px-4 py-2 sm:py-3 hover:bg-rose-50 transition group"
+        >
+          <span class="bg-rose-100 text-rose-600 rounded-lg p-2"
+            ><i class="fas fa-redo text-base sm:text-lg"></i
+          ></span>
+          <span class="font-semibold text-gray-800 flex-1 text-sm sm:text-base"
+            >Rotate PDF</span
+          >
+          <span class="text-rose-400 group-hover:text-rose-600 transition"
+            ><i class="fas fa-arrow-right"></i
+          ></span>
+        </a>
+        <a
+          href="Convert_PDF/Page_Number.html"
+          class="tool-item flex items-center gap-3 sm:gap-4 bg-white rounded-xl shadow-sm px-3 sm:px-4 py-2 sm:py-3 hover:bg-lime-50 transition group"
+        >
+          <span class="bg-lime-100 text-lime-600 rounded-lg p-2"
+            ><i class="fas fa-list-ol text-base sm:text-lg"></i
+          ></span>
+          <span class="font-semibold text-gray-800 flex-1 text-sm sm:text-base"
+            >Add Page Numbers</span
+          >
+          <span class="text-lime-400 group-hover:text-lime-600 transition"
+            ><i class="fas fa-arrow-right"></i
+          ></span>
+        </a>
+        <a
+          href="Convert_PDF/Watermark_PDF.html"
+          class="tool-item flex items-center gap-3 sm:gap-4 bg-white rounded-xl shadow-sm px-3 sm:px-4 py-2 sm:py-3 hover:bg-cyan-50 transition group"
+        >
+          <span class="bg-cyan-100 text-cyan-600 rounded-lg p-2"
+            ><i class="fas fa-tint text-base sm:text-lg"></i
+          ></span>
+          <span class="font-semibold text-gray-800 flex-1 text-sm sm:text-base"
+            >Add Watermark</span
+          >
+          <span class="text-cyan-400 group-hover:text-cyan-600 transition"
+            ><i class="fas fa-arrow-right"></i
+          ></span>
+        </a>
+      </div>
+    </div>
+    <!-- ...rest of the tool pages and scripts remain unchanged... -->
+    <!-- (Paste your previous tool pages and script here) -->
+    <!-- ... -->
+    <!-- Place your script for showPage and other logic here -->
+    <script>
+      function showPage(pageId) {
+        document.querySelectorAll('.page').forEach((page) => {
+          page.classList.add('hidden');
+        });
+        const selectedPage = document.getElementById(pageId);
+        if (selectedPage) {
+          selectedPage.classList.remove('hidden');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          const templatePage = document.getElementById('tool-template');
+          if (templatePage) {
+            templatePage.classList.remove('hidden');
+            const pageTitle = pageId
+              .split('-')
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ');
+            templatePage.querySelector('h2').textContent = pageTitle;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }
+      }
+      document.addEventListener('DOMContentLoaded', function () {
+        showPage('home');
+      });
+
+      // Toggle Mobile Menu
+      const menuToggle = document.getElementById('menu-toggle');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const hamburger = document.querySelector('.hamburger');
+      menuToggle.addEventListener('click', () => {
+        if (mobileMenu.classList.contains('hidden')) {
+          mobileMenu.classList.remove('hidden');
+          mobileMenu.classList.add('active');
+          hamburger.classList.add('active');
+        } else {
+          mobileMenu.classList.add('hidden');
+          mobileMenu.classList.remove('active');
+          hamburger.classList.remove('active');
+        }
+      });
+    </script>
+  </body>
+</html>

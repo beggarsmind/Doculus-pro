@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doculus Pro - Split PDF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <script src="https://unpkg.com/downloadjs@1.4.7/download.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+      body {
+        font-family: 'Inter', sans-serif;
+        padding-top: 70px;
+      }
+
+      .header {
+        background-color: white;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+      }
+
+      .dropdown {
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+      }
+
+      /* Only apply margin-left on screens >= 1024px (Tailwind's lg breakpoint) */
+      @media (min-width: 1024px) {
+        .dropdown {
+          margin-left: -28rem;
+        }
+      }
+
+      .dropdown-trigger:hover .dropdown,
+      .dropdown-trigger:focus-within .dropdown {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+
+      .nav-link {
+        position: relative;
+      }
+
+      .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: -4px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background-color: #e74c3c;
+        transition: width 0.3s ease;
+      }
+
+      .nav-link:hover::after {
+        width: 100%;
+      }
+
+      .mobile-menu {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+
+      .mobile-menu.active {
+        transform: translateX(0);
+      }
+
+      .hamburger div {
+        transition: all 0.3s ease;
+      }
+
+      .hamburger.active div:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+      }
+
+      .hamburger.active div:nth-child(2) {
+        opacity: 0;
+      }
+
+      .hamburger.active div:nth-child(3) {
+        transform: rotate(-45deg) translate(5px, -5px);
+      }
+
+      .mobile-dropdown {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+      }
+
+      .mobile-dropdown.active {
+        max-height: 500px;
+      }
+
+      .file-item {
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .drag-area {
+        border: 2px dashed #e2e8f0;
+        transition: all 0.3s ease;
+      }
+
+      .drag-area.active {
+        border-color: #e74c3c;
+        background-color: rgba(231, 76, 60, 0.05);
+      }
+
+      .progress-bar {
+        transition: width 0.3s ease;
+      }
+
+      .btn-primary {
+        background-color: #e74c3c;
+        transition: all 0.3s ease;
+      }
+
+      .btn-primary:hover {
+        background-color: #c0392b;
+      }
+
+      .btn-primary:disabled {
+        background-color: #e57373;
+        cursor: not-allowed;
+      }
+
+      .btn-outline {
+        transition: all 0.3s ease;
+      }
+
+      .btn-outline:hover {
+        background-color: #f8f9fa;
+      }
+
+      .page-thumbnail {
+        transition: all 0.2s ease;
+        border: 2px solid transparent;
+      }
+
+      .page-thumbnail.selected {
+        border-color: #e74c3c;
+      }
+
+      .page-thumbnail:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .page-number {
+        background-color: rgba(0, 0, 0, 0.6);
+        color: white;
+        font-size: 12px;
+        padding: 2px 6px;
+        border-radius: 4px;
+      }
+
+      .tab {
+        transition: all 0.3s ease;
+      }
+
+      .tab.active {
+        color: #e74c3c;
+        border-color: #e74c3c;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Header -->
+    <header class="header fixed top-0 left-0 w-full z-50">
+      <div class="container mx-auto px-2 sm:px-4">
+        <div class="flex items-center justify-between h-[60px] sm:h-[70px]">
+          <!-- Logo and Title -->
+          <div class="flex items-center">
+            <a href="#" class="flex items-center">
+              <img
+                src="images/D3.png"
+                alt="Doculus Pro Logo"
+                class="w-14 h-14 sm:w-20 sm:h-20 object-contain"
+              />
+              <span
+                class="ml-1 sm:ml-2 text-lg sm:text-xl font-bold text-gray-800"
+                >Doculus Pro</span
+              >
+            </a>
+          </div>
+
+          <!-- Desktop Navigation -->
+          <nav class="hidden md:flex items-center space-x-6">
+            <a
+              href="index.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              id="home-link"
+              >Home</a
+            >
+            <a
+              href="Merge_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              id="merge-pdf-link"
+              >Merge PDF</a
+            >
+            <a
+              href="Split_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Split PDF</a
+            >
+            <a
+              href="Compress_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Compress PDF</a
+            >
+            <a
+              href="all_pdf.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >All PDF Tools</a
+            >
+          </nav>
+
+          <!-- Mobile Menu Button -->
+          <div class="md:hidden">
+            <button
+              id="menu-toggle"
+              class="focus:outline-none"
+              aria-label="Toggle menu"
+              type="button"
+            >
+              <div class="hamburger">
+                <div class="w-6 h-0.5 bg-gray-700 mb-1.5"></div>
+                <div class="w-6 h-0.5 bg-gray-700 mb-1.5"></div>
+                <div class="w-6 h-0.5 bg-gray-700"></div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div
+        id="mobile-menu"
+        class="mobile-menu fixed top-[60px] sm:top-[70px] left-0 w-full h-[calc(100vh-60px)] sm:h-[calc(100vh-70px)] bg-white z-40 md:hidden hidden"
+      >
+        <div class="p-4">
+          <nav class="space-y-1">
+            <a
+              href="index.html"
+              class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+              >Home</a
+            >
+            <a
+              href="Merge_PDF.html"
+              class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+              >Merge PDF</a
+            >
+            <a
+              href="Split_PDF.html"
+              class="block py-3 px-4 text-red-600 font-bold rounded-md"
+              >Split PDF</a
+            >
+            <a
+              href="Compress_PDF.html"
+              class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+              >Compress PDF</a
+            >
+            <a
+              href="all_pdf.html"
+              class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+              >All PDF Tools</a
+            >
+            <!-- Mobile Convert PDF Dropdown (optional) -->
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- Home Page Content -->
+    <div id="home-page" class="container mx-auto px-4 py-8 hidden">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">
+          Welcome to PDFTools
+        </h1>
+        <p class="text-gray-600">
+          Your all-in-one solution for working with PDF files.
+        </p>
+
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800 mb-3">Merge PDF</h2>
+            <p class="text-gray-600 mb-4">
+              Combine multiple PDF files into a single document.
+            </p>
+            <a
+              href="#"
+              class="text-red-500 font-medium hover:text-red-600"
+              id="home-merge-link"
+              >Learn more →</a
+            >
+          </div>
+
+          <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800 mb-3">Split PDF</h2>
+            <p class="text-gray-600 mb-4">
+              Extract pages or split a PDF into multiple files.
+            </p>
+            <a
+              href="#"
+              class="text-red-500 font-medium hover:text-red-600"
+              id="home-split-link"
+              >Learn more →</a
+            >
+          </div>
+
+          <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800 mb-3">
+              Convert PDF
+            </h2>
+            <p class="text-gray-600 mb-4">
+              Convert PDFs to and from various file formats.
+            </p>
+            <a href="#" class="text-red-500 font-medium hover:text-red-600"
+              >Learn more →</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Merge PDF Page Content -->
+    <div id="merge-pdf-page" class="container mx-auto px-4 py-8 hidden">
+      <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <h1 class="text-2xl font-bold text-gray-800 mb-2">Merge PDF Files</h1>
+          <p class="text-gray-600 mb-6">
+            Combine multiple PDF documents into a single file
+          </p>
+
+          <!-- Upload Area -->
+          <div
+            id="merge-upload-area"
+            class="drag-area border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-6"
+          >
+            <div class="flex flex-col items-center justify-center">
+              <svg
+                class="w-16 h-16 text-gray-400 mb-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                ></path>
+              </svg>
+              <h3 class="text-lg font-medium text-gray-700 mb-2">
+                Drag & Drop PDF files here
+              </h3>
+              <p class="text-gray-500 mb-4">or</p>
+              <label
+                for="merge-file-input"
+                class="btn-primary bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-6 rounded-md cursor-pointer transition-colors duration-300"
+              >
+                Select PDF Files
+              </label>
+              <input
+                type="file"
+                id="merge-file-input"
+                class="hidden"
+                accept=".pdf"
+                multiple
+              />
+              <p class="text-sm text-gray-500 mt-4">
+                Maximum 10 PDF files. 50MB per file.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Split PDF Page Content -->
+    <div
+      id="split-pdf-page"
+      class="container mx-auto px-2 sm:px-4 py-6 sm:py-8"
+    >
+      <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-md p-3 sm:p-6">
+          <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
+            Split PDF File
+          </h1>
+          <p class="text-gray-600 mb-4 sm:mb-6">
+            Extract pages or split your PDF document into multiple files
+          </p>
+
+          <!-- Upload Area -->
+          <div
+            id="upload-area"
+            class="drag-area border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-8 text-center mb-4 sm:mb-6"
+          >
+            <div class="flex flex-col items-center justify-center">
+              <svg
+                class="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mb-3 sm:mb-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                ></path>
+              </svg>
+              <h3
+                class="text-base sm:text-lg font-medium text-gray-700 mb-1 sm:mb-2"
+              >
+                Drag & Drop PDF file here
+              </h3>
+              <p class="text-gray-500 mb-2 sm:mb-4">or</p>
+              <label
+                for="file-input"
+                class="btn-primary bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 sm:px-6 rounded-md cursor-pointer transition-colors duration-300"
+              >
+                Select PDF File
+              </label>
+              <input type="file" id="file-input" class="hidden" accept=".pdf" />
+              <p class="text-xs sm:text-sm text-gray-500 mt-2 sm:mt-4">
+                Maximum 50MB per file.
+              </p>
+            </div>
+          </div>
+
+          <!-- PDF Preview and Split Options -->
+          <div id="pdf-preview-container" class="mb-4 sm:mb-6 hidden">
+            <div class="border-b border-gray-200 mb-4 sm:mb-6">
+              <div class="flex flex-wrap -mb-px">
+                <button
+                  id="tab-all-pages"
+                  class="tab active inline-block p-2 sm:p-4 border-b-2 border-red-500 text-red-500 font-medium"
+                >
+                  All Pages
+                </button>
+                <button
+                  id="tab-extract-pages"
+                  class="tab inline-block p-2 sm:p-4 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium"
+                >
+                  Extract Pages
+                </button>
+                <button
+                  id="tab-split-by"
+                  class="tab inline-block p-2 sm:p-4 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium"
+                >
+                  Split By
+                </button>
+              </div>
+            </div>
+
+            <!-- Tab Content: All Pages -->
+            <div id="content-all-pages" class="tab-content active">
+              <div class="mb-4 sm:mb-6">
+                <h3
+                  class="text-base sm:text-lg font-medium text-gray-700 mb-2 sm:mb-3"
+                >
+                  PDF Preview
+                </h3>
+                <div class="border border-gray-200 rounded-lg p-2 sm:p-4">
+                  <div class="flex items-center justify-between mb-2 sm:mb-4">
+                    <div>
+                      <span
+                        id="pdf-name"
+                        class="font-medium text-gray-800"
+                      ></span>
+                      <span class="text-xs sm:text-sm text-gray-500 ml-2"
+                        >(<span id="pdf-size"></span>)</span
+                      >
+                    </div>
+                    <button
+                      id="change-file-btn"
+                      class="text-red-500 hover:text-red-600 font-medium text-xs sm:text-sm flex items-center"
+                    >
+                      <svg
+                        class="w-4 h-4 mr-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                        ></path>
+                      </svg>
+                      Change File
+                    </button>
+                  </div>
+
+                  <div
+                    id="pdf-thumbnails"
+                    class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4"
+                  >
+                    <!-- PDF thumbnails will be added here dynamically -->
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-between"
+              >
+                <div class="mb-2 sm:mb-0">
+                  <p class="text-xs sm:text-sm text-gray-600">
+                    This will create a separate PDF file for each page
+                  </p>
+                </div>
+
+                <button
+                  id="split-all-button"
+                  class="btn-primary bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 sm:px-6 rounded-md transition-colors duration-300 flex items-center mt-2 sm:mt-0"
+                >
+                  <svg
+                    class="w-5 h-5 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"
+                    ></path>
+                  </svg>
+                  Split All Pages
+                </button>
+              </div>
+            </div>
+
+            <!-- Tab Content: Extract Pages -->
+            <div id="content-extract-pages" class="tab-content">
+              <div class="mb-4 sm:mb-6">
+                <h3
+                  class="text-base sm:text-lg font-medium text-gray-700 mb-2 sm:mb-3"
+                >
+                  Select Pages to Extract
+                </h3>
+                <p class="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-4">
+                  Click on the pages you want to extract into a new PDF file
+                </p>
+
+                <div class="border border-gray-200 rounded-lg p-2 sm:p-4">
+                  <div
+                    id="extract-thumbnails"
+                    class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4"
+                  >
+                    <!-- PDF thumbnails for extraction will be added here dynamically -->
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-between"
+              >
+                <div class="mb-2 sm:mb-0">
+                  <p class="text-xs sm:text-sm text-gray-600">
+                    <span id="selected-pages-count">0</span> pages selected
+                  </p>
+                </div>
+
+                <button
+                  id="extract-button"
+                  class="btn-primary bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 sm:px-6 rounded-md transition-colors duration-300 flex items-center mt-2 sm:mt-0"
+                  disabled
+                >
+                  <svg
+                    class="w-5 h-5 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"
+                    ></path>
+                  </svg>
+                  Extract Selected Pages
+                </button>
+              </div>
+            </div>
+
+            <!-- Tab Content: Split By -->
+            <div id="content-split-by" class="tab-content">
+              <div class="mb-4 sm:mb-6">
+                <h3
+                  class="text-base sm:text-lg font-medium text-gray-700 mb-2 sm:mb-3"
+                >
+                  Split PDF By
+                </h3>
+
+                <div class="space-y-4">
+                  <div class="border border-gray-200 rounded-lg p-4">
+                    <label class="flex items-center">
+                      <input
+                        type="radio"
+                        name="split-option"
+                        value="range"
+                        class="h-4 w-4 text-red-500 focus:ring-red-400"
+                        checked
+                      />
+                      <span class="ml-2 text-gray-700">Page Range</span>
+                    </label>
+
+                    <div class="mt-3 pl-6">
+                      <p class="text-sm text-gray-600 mb-2">
+                        Enter page ranges separated by commas (e.g., 1-3,5,7-9)
+                      </p>
+                      <input
+                        type="text"
+                        id="page-range-input"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent"
+                        placeholder="e.g., 1-3,5,7-9"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="border border-gray-200 rounded-lg p-4">
+                    <label class="flex items-center">
+                      <input
+                        type="radio"
+                        name="split-option"
+                        value="interval"
+                        class="h-4 w-4 text-red-500 focus:ring-red-400"
+                      />
+                      <span class="ml-2 text-gray-700">Fixed Interval</span>
+                    </label>
+
+                    <div class="mt-3 pl-6">
+                      <p class="text-sm text-gray-600 mb-2">
+                        Split into files with a fixed number of pages
+                      </p>
+                      <div class="flex items-center">
+                        <input
+                          type="number"
+                          id="interval-input"
+                          class="w-20 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent"
+                          value="1"
+                          min="1"
+                          disabled
+                        />
+                        <span class="ml-2 text-gray-700">pages per file</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="border border-gray-200 rounded-lg p-4">
+                    <label class="flex items-center">
+                      <input
+                        type="radio"
+                        name="split-option"
+                        value="even-odd"
+                        class="h-4 w-4 text-red-500 focus:ring-red-400"
+                      />
+                      <span class="ml-2 text-gray-700">Even & Odd Pages</span>
+                    </label>
+
+                    <div class="mt-3 pl-6">
+                      <p class="text-sm text-gray-600">
+                        Split into two files: one with even pages and one with
+                        odd pages
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex justify-end">
+                <button
+                  id="split-by-button"
+                  class="btn-primary bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-6 rounded-md transition-colors duration-300 flex items-center"
+                >
+                  <svg
+                    class="w-5 h-5 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"
+                    ></path>
+                  </svg>
+                  Split PDF
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Processing State -->
+          <div id="processing-state" class="mb-6 hidden">
+            <h3 class="text-lg font-medium text-gray-700 mb-3">
+              Processing PDF File...
+            </h3>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+              <div
+                id="progress-bar"
+                class="progress-bar bg-red-500 h-2.5 rounded-full"
+                style="width: 0%"
+              ></div>
+            </div>
+            <p class="text-sm text-gray-500 mt-2 text-center">
+              Please wait while we process your PDF file
+            </p>
+          </div>
+
+          <!-- Result State -->
+          <div id="result-state" class="mb-6 hidden">
+            <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+              <div class="text-center mb-4">
+                <div
+                  class="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full text-green-500 mb-4"
+                >
+                  <svg
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    ></path>
+                  </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-800 mb-2">
+                  PDF Successfully Split!
+                </h3>
+                <p class="text-gray-600 mb-4">
+                  Your split PDF files are ready to download
+                </p>
+              </div>
+
+              <div id="result-files" class="space-y-3 mb-4">
+                <!-- Result files will be added here dynamically -->
+              </div>
+
+              <div class="text-center mt-6">
+                <button
+                  id="split-new-button"
+                  class="btn-outline border border-gray-300 text-gray-700 font-medium py-2 px-6 rounded-md hover:bg-gray-50 transition-colors duration-300"
+                >
+                  Split Another PDF
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- How It Works Section -->
+          <div class="mt-10 border-t border-gray-200 pt-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">
+              How to Split PDF Files
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="flex flex-col items-center text-center">
+                <div
+                  class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-4"
+                >
+                  <svg
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                    ></path>
+                  </svg>
+                </div>
+                <h3 class="font-medium text-gray-800 mb-2">1. Upload File</h3>
+                <p class="text-gray-600 text-sm">
+                  Select a PDF file or drag & drop it into the upload area
+                </p>
+              </div>
+
+              <div class="flex flex-col items-center text-center">
+                <div
+                  class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-4"
+                >
+                  <svg
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"
+                    ></path>
+                  </svg>
+                </div>
+                <h3 class="font-medium text-gray-800 mb-2">
+                  2. Choose Split Method
+                </h3>
+                <p class="text-gray-600 text-sm">
+                  Select pages to extract or choose how to split your PDF
+                </p>
+              </div>
+
+              <div class="flex flex-col items-center text-center">
+                <div
+                  class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-4"
+                >
+                  <svg
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    ></path>
+                  </svg>
+                </div>
+                <h3 class="font-medium text-gray-800 mb-2">3. Download</h3>
+                <p class="text-gray-600 text-sm">
+                  Download your split PDF files and save them to your device
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Page Navigation
+      const homePage = document.getElementById('home-page');
+      const mergePdfPage = document.getElementById('merge-pdf-page');
+      const splitPdfPage = document.getElementById('split-pdf-page');
+      const homeLink = document.getElementById('home-link');
+      const mergePdfLink = document.getElementById('merge-pdf-link');
+      const splitPdfLink = document.getElementById('split-pdf-link');
+      const homeMergeLink = document.getElementById('home-merge-link');
+      const homeSplitLink = document.getElementById('home-split-link');
+      const mobileMergeLink = document.getElementById('mobile-merge-link');
+      const mobileSplitLink = document.getElementById('mobile-split-link');
+
+      // Show Split PDF Page by default
+      homePage.classList.add('hidden');
+      mergePdfPage.classList.add('hidden');
+      splitPdfPage.classList.remove('hidden');
+
+      // Navigation Event Listeners
+      homeLink.addEventListener('click', (e) => {
+        // Redirect to index.html instead of showing the home page section
+        window.location.href = 'index.html';
+      });
+
+      mergePdfLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        homePage.classList.add('hidden');
+        mergePdfPage.classList.remove('hidden');
+        splitPdfPage.classList.add('hidden');
+      });
+
+      splitPdfLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        homePage.classList.add('hidden');
+        mergePdfPage.classList.add('hidden');
+        splitPdfPage.classList.remove('hidden');
+      });
+
+      homeMergeLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        homePage.classList.add('hidden');
+        mergePdfPage.classList.remove('hidden');
+        splitPdfPage.classList.add('hidden');
+      });
+
+      homeSplitLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        homePage.classList.add('hidden');
+        mergePdfPage.classList.add('hidden');
+        splitPdfPage.classList.remove('hidden');
+      });
+
+      mobileMergeLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        homePage.classList.add('hidden');
+        mergePdfPage.classList.remove('hidden');
+        splitPdfPage.classList.add('hidden');
+        document.getElementById('mobile-menu').classList.remove('active');
+        document.querySelector('.hamburger').classList.remove('active');
+      });
+
+      mobileSplitLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        homePage.classList.add('hidden');
+        mergePdfPage.classList.add('hidden');
+        splitPdfPage.classList.remove('hidden');
+        document.getElementById('mobile-menu').classList.remove('active');
+        document.querySelector('.hamburger').classList.remove('active');
+      });
+
+      // Toggle Mobile Menu
+      const menuToggle = document.getElementById('menu-toggle');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const hamburger = document.querySelector('.hamburger');
+      menuToggle.addEventListener('click', () => {
+        if (mobileMenu.classList.contains('hidden')) {
+          mobileMenu.classList.remove('hidden');
+          mobileMenu.classList.add('active');
+          hamburger.classList.add('active');
+        } else {
+          mobileMenu.classList.add('hidden');
+          mobileMenu.classList.remove('active');
+          hamburger.classList.remove('active');
+        }
+      });
+
+      // Close mobile menu on navigation (no redeclaration)
+      if (typeof mobileMergeLink !== 'undefined' && mobileMergeLink) {
+        mobileMergeLink.addEventListener('click', () => {
+          mobileMenu.classList.add('hidden');
+          mobileMenu.classList.remove('active');
+          hamburger.classList.remove('active');
+        });
+      }
+      if (typeof mobileSplitLink !== 'undefined' && mobileSplitLink) {
+        mobileSplitLink.addEventListener('click', () => {
+          mobileMenu.classList.add('hidden');
+          mobileMenu.classList.remove('active');
+          hamburger.classList.remove('active');
+        });
+      }
+
+      // Sticky Header on Scroll
+      const header = document.querySelector('.header');
+      let lastScrollTop = 0;
+
+      window.addEventListener('scroll', () => {
+        const scrollTop =
+          window.pageYOffset || document.documentElement.scrollTop;
+
+        if (scrollTop > lastScrollTop && scrollTop > 70) {
+          header.style.transform = 'translateY(-100%)';
+        } else {
+          header.style.transform = 'translateY(0)';
+        }
+
+        if (scrollTop > 10) {
+          header.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+        } else {
+          header.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+        }
+
+        lastScrollTop = scrollTop;
+      });
+
+      // --- Split PDF Functionality Variables ---
+      const uploadArea = document.getElementById('upload-area');
+      const fileInput = document.getElementById('file-input');
+      const pdfPreviewContainer = document.getElementById(
+        'pdf-preview-container'
+      );
+      const pdfName = document.getElementById('pdf-name');
+      const pdfSize = document.getElementById('pdf-size');
+      const pdfThumbnails = document.getElementById('pdf-thumbnails');
+      const extractThumbnails = document.getElementById('extract-thumbnails');
+      const selectedPagesCount = document.getElementById(
+        'selected-pages-count'
+      );
+      const extractButton = document.getElementById('extract-button');
+      const splitAllButton = document.getElementById('split-all-button');
+      const splitByButton = document.getElementById('split-by-button');
+      const changeFileBtn = document.getElementById('change-file-btn');
+      const processingState = document.getElementById('processing-state');
+      const progressBar = document.getElementById('progress-bar');
+      const resultState = document.getElementById('result-state');
+      const resultFiles = document.getElementById('result-files');
+      const splitNewButton = document.getElementById('split-new-button');
+
+      // Tab Navigation
+      const tabAllPages = document.getElementById('tab-all-pages');
+      const tabExtractPages = document.getElementById('tab-extract-pages');
+      const tabSplitBy = document.getElementById('tab-split-by');
+      const contentAllPages = document.getElementById('content-all-pages');
+      const contentExtractPages = document.getElementById(
+        'content-extract-pages'
+      );
+      const contentSplitBy = document.getElementById('content-split-by');
+
+      // Split By Options
+      const pageRangeInput = document.getElementById('page-range-input');
+      const intervalInput = document.getElementById('interval-input');
+      const splitOptions = document.querySelectorAll(
+        'input[name="split-option"]'
+      );
+
+      // Store uploaded file and PDF document
+      let uploadedFile = null;
+      let pdfDocument = null;
+      let pdfPages = 0;
+      let selectedPages = [];
+      let splitResults = [];
+
+      // --- Drag and Drop ---
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+      });
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      ['dragenter', 'dragover'].forEach((eventName) => {
+        uploadArea.addEventListener(
+          eventName,
+          () => uploadArea.classList.add('active'),
+          false
+        );
+      });
+      ['dragleave', 'drop'].forEach((eventName) => {
+        uploadArea.addEventListener(
+          eventName,
+          () => uploadArea.classList.remove('active'),
+          false
+        );
+      });
+      uploadArea.addEventListener('drop', handleDrop, false);
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length > 0) handleFile(files[0]);
+      }
+
+      // --- File Selection ---
+      fileInput.addEventListener('change', function () {
+        if (this.files.length > 0) handleFile(this.files[0]);
+      });
+
+      // --- Change File Button ---
+      changeFileBtn.addEventListener('click', function () {
+        resetUI();
+        uploadArea.classList.remove('hidden');
+        pdfPreviewContainer.classList.add('hidden');
+      });
+
+      // --- Handle File Upload ---
+      async function handleFile(file) {
+        if (file.type !== 'application/pdf') {
+          alert('Please select a valid PDF file.');
+          return;
+        }
+        uploadedFile = file;
+        pdfName.textContent = file.name;
+        pdfSize.textContent = formatFileSize(file.size);
+        uploadArea.classList.add('hidden');
+        processingState.classList.remove('hidden');
+        progressBar.style.width = '0%';
+
+        try {
+          const arrayBuffer = await readFileAsArrayBuffer(file);
+          const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+          loadingTask.onProgress = function (progress) {
+            const percent = (progress.loaded / progress.total) * 100;
+            progressBar.style.width = `${percent}%`;
+          };
+          pdfDocument = await loadingTask.promise;
+          pdfPages = pdfDocument.numPages;
+          await generateThumbnails();
+          processingState.classList.add('hidden');
+          pdfPreviewContainer.classList.remove('hidden');
+          selectedPages = [];
+          updateSelectedPagesCount();
+        } catch (error) {
+          console.error('Error loading PDF:', error);
+          alert(
+            'An error occurred while loading the PDF file. Please try again.'
+          );
+          processingState.classList.add('hidden');
+          uploadArea.classList.remove('hidden');
+        }
+      }
+
+      // --- Generate PDF Thumbnails ---
+      async function generateThumbnails() {
+        pdfThumbnails.innerHTML = '';
+        extractThumbnails.innerHTML = '';
+        for (let i = 1; i <= pdfPages; i++) {
+          const page = await pdfDocument.getPage(i);
+          const viewport = page.getViewport({ scale: 0.2 });
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          await page.render({ canvasContext: context, viewport: viewport })
+            .promise;
+          // All Pages tab
+          const thumbnailDiv = document.createElement('div');
+          thumbnailDiv.className = 'relative';
+          thumbnailDiv.innerHTML = `
+            <div class="page-thumbnail rounded-md overflow-hidden shadow-sm">
+              <img src="${canvas.toDataURL()}" alt="Page ${i}" class="w-full h-auto">
+              <div class="absolute bottom-2 right-2 page-number">${i}</div>
+            </div>
+          `;
+          pdfThumbnails.appendChild(thumbnailDiv);
+          // Extract Pages tab
+          const extractThumbnailDiv = document.createElement('div');
+          extractThumbnailDiv.className = 'relative cursor-pointer';
+          extractThumbnailDiv.dataset.page = i;
+          extractThumbnailDiv.innerHTML = `
+            <div class="page-thumbnail rounded-md overflow-hidden shadow-sm">
+              <img src="${canvas.toDataURL()}" alt="Page ${i}" class="w-full h-auto">
+              <div class="absolute bottom-2 right-2 page-number">${i}</div>
+            </div>
+          `;
+          extractThumbnailDiv.addEventListener('click', togglePageSelection);
+          extractThumbnails.appendChild(extractThumbnailDiv);
+        }
+      }
+
+      // --- Toggle Page Selection for Extraction ---
+      function togglePageSelection() {
+        const pageNumber = parseInt(this.dataset.page);
+        const thumbnail = this.querySelector('.page-thumbnail');
+        if (selectedPages.includes(pageNumber)) {
+          selectedPages = selectedPages.filter((page) => page !== pageNumber);
+          thumbnail.classList.remove('selected');
+        } else {
+          selectedPages.push(pageNumber);
+          thumbnail.classList.add('selected');
+        }
+        selectedPages.sort((a, b) => a - b);
+        updateSelectedPagesCount();
+      }
+
+      // --- Update Selected Pages Count and Button State ---
+      function updateSelectedPagesCount() {
+        selectedPagesCount.textContent = selectedPages.length;
+        if (selectedPages.length > 0) {
+          extractButton.disabled = false;
+          extractButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+          extractButton.disabled = true;
+          extractButton.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+      }
+
+      // --- Tab Navigation ---
+      tabAllPages.addEventListener('click', function () {
+        setActiveTab('all-pages');
+      });
+      tabExtractPages.addEventListener('click', function () {
+        setActiveTab('extract-pages');
+      });
+      tabSplitBy.addEventListener('click', function () {
+        setActiveTab('split-by');
+      });
+      function setActiveTab(tabName) {
+        [tabAllPages, tabExtractPages, tabSplitBy].forEach((tab) =>
+          tab.classList.remove('active')
+        );
+        [contentAllPages, contentExtractPages, contentSplitBy].forEach(
+          (content) => content.classList.remove('active')
+        );
+        if (tabName === 'all-pages') {
+          tabAllPages.classList.add('active');
+          contentAllPages.classList.add('active');
+        } else if (tabName === 'extract-pages') {
+          tabExtractPages.classList.add('active');
+          contentExtractPages.classList.add('active');
+        } else if (tabName === 'split-by') {
+          tabSplitBy.classList.add('active');
+          contentSplitBy.classList.add('active');
+        }
+      }
+
+      // --- Split Options Radio Buttons ---
+      splitOptions.forEach((option) => {
+        option.addEventListener('change', function () {
+          if (this.value === 'interval') {
+            intervalInput.disabled = false;
+          } else {
+            intervalInput.disabled = true;
+          }
+        });
+      });
+
+      // --- Split All Pages ---
+      splitAllButton.addEventListener('click', async function () {
+        if (!pdfDocument) return;
+        pdfPreviewContainer.classList.add('hidden');
+        processingState.classList.remove('hidden');
+        progressBar.style.width = '0%';
+        try {
+          splitResults = [];
+          const arrayBuffer = await readFileAsArrayBuffer(uploadedFile);
+          const sourcePdf = await PDFLib.PDFDocument.load(arrayBuffer);
+          for (let i = 0; i < pdfPages; i++) {
+            const progress = Math.round(((i + 1) / pdfPages) * 100);
+            progressBar.style.width = `${progress}%`;
+            const newPdf = await PDFLib.PDFDocument.create();
+            const [copiedPage] = await newPdf.copyPages(sourcePdf, [i]);
+            newPdf.addPage(copiedPage);
+            const pdfBytes = await newPdf.save();
+            splitResults.push({
+              name: `${getFileNameWithoutExtension(uploadedFile.name)}_page_${
+                i + 1
+              }.pdf`,
+              data: pdfBytes,
+            });
+          }
+          processingState.classList.add('hidden');
+          showResults();
+        } catch (error) {
+          console.error('Error splitting PDF:', error);
+          alert(
+            'An error occurred while splitting the PDF file. Please try again.'
+          );
+          processingState.classList.add('hidden');
+          pdfPreviewContainer.classList.remove('hidden');
+        }
+      });
+
+      // --- Extract Selected Pages ---
+      extractButton.addEventListener('click', async function () {
+        if (!pdfDocument || selectedPages.length === 0) return;
+        pdfPreviewContainer.classList.add('hidden');
+        processingState.classList.remove('hidden');
+        progressBar.style.width = '0%';
+        try {
+          const newPdf = await PDFLib.PDFDocument.create();
+          const arrayBuffer = await readFileAsArrayBuffer(uploadedFile);
+          const sourcePdf = await PDFLib.PDFDocument.load(arrayBuffer);
+          for (let i = 0; i < selectedPages.length; i++) {
+            const progress = Math.round(((i + 1) / selectedPages.length) * 100);
+            progressBar.style.width = `${progress}%`;
+            const pageIndex = selectedPages[i] - 1;
+            const [copiedPage] = await newPdf.copyPages(sourcePdf, [pageIndex]);
+            newPdf.addPage(copiedPage);
+          }
+          const pdfBytes = await newPdf.save();
+          splitResults = [
+            {
+              name: `${getFileNameWithoutExtension(
+                uploadedFile.name
+              )}_extracted.pdf`,
+              data: pdfBytes,
+            },
+          ];
+          processingState.classList.add('hidden');
+          showResults();
+        } catch (error) {
+          console.error('Error extracting pages:', error);
+          alert(
+            'An error occurred while extracting pages from the PDF file. Please try again.'
+          );
+          processingState.classList.add('hidden');
+          pdfPreviewContainer.classList.remove('hidden');
+        }
+      });
+
+      // --- Split By Options ---
+      splitByButton.addEventListener('click', async function () {
+        if (!pdfDocument) return;
+        const selectedOption = document.querySelector(
+          'input[name="split-option"]:checked'
+        ).value;
+        pdfPreviewContainer.classList.add('hidden');
+        processingState.classList.remove('hidden');
+        progressBar.style.width = '0%';
+        try {
+          splitResults = [];
+          const arrayBuffer = await readFileAsArrayBuffer(uploadedFile);
+          const sourcePdf = await PDFLib.PDFDocument.load(arrayBuffer);
+
+          if (selectedOption === 'range') {
+            const rangeText = pageRangeInput.value.trim();
+            if (!rangeText) {
+              alert('Please enter a valid page range.');
+              processingState.classList.add('hidden');
+              pdfPreviewContainer.classList.remove('hidden');
+              return;
+            }
+            const ranges = parsePageRanges(rangeText, pdfPages);
+            if (ranges.length === 0) {
+              alert('Please enter a valid page range.');
+              processingState.classList.add('hidden');
+              pdfPreviewContainer.classList.remove('hidden');
+              return;
+            }
+            for (let i = 0; i < ranges.length; i++) {
+              const progress = Math.round(((i + 1) / ranges.length) * 100);
+              progressBar.style.width = `${progress}%`;
+              const range = ranges[i];
+              const newPdf = await PDFLib.PDFDocument.create();
+              const pageIndices = range.map((pageNum) => pageNum - 1);
+              const copiedPages = await newPdf.copyPages(
+                sourcePdf,
+                pageIndices
+              );
+              copiedPages.forEach((page) => newPdf.addPage(page));
+              const pdfBytes = await newPdf.save();
+              splitResults.push({
+                name: `${getFileNameWithoutExtension(
+                  uploadedFile.name
+                )}_range_${i + 1}.pdf`,
+                data: pdfBytes,
+              });
+            }
+          } else if (selectedOption === 'interval') {
+            const interval = parseInt(intervalInput.value) || 1;
+            if (interval < 1) {
+              alert('Please enter a valid interval (minimum 1).');
+              processingState.classList.add('hidden');
+              pdfPreviewContainer.classList.remove('hidden');
+              return;
+            }
+            const numFiles = Math.ceil(pdfPages / interval);
+            for (let i = 0; i < numFiles; i++) {
+              const progress = Math.round(((i + 1) / numFiles) * 100);
+              progressBar.style.width = `${progress}%`;
+              const startPage = i * interval;
+              const endPage = Math.min((i + 1) * interval, pdfPages);
+              const pageIndices = [];
+              for (let j = startPage; j < endPage; j++) {
+                pageIndices.push(j);
+              }
+              const newPdf = await PDFLib.PDFDocument.create();
+              const copiedPages = await newPdf.copyPages(
+                sourcePdf,
+                pageIndices
+              );
+              copiedPages.forEach((page) => newPdf.addPage(page));
+              const pdfBytes = await newPdf.save();
+              splitResults.push({
+                name: `${getFileNameWithoutExtension(uploadedFile.name)}_part_${
+                  i + 1
+                }.pdf`,
+                data: pdfBytes,
+              });
+            }
+          } else if (selectedOption === 'even-odd') {
+            // Split into even and odd pages
+            const evenPdf = await PDFLib.PDFDocument.create();
+            const oddPdf = await PDFLib.PDFDocument.create();
+            const evenIndices = [];
+            const oddIndices = [];
+            for (let i = 0; i < pdfPages; i++) {
+              if ((i + 1) % 2 === 0) {
+                evenIndices.push(i);
+              } else {
+                oddIndices.push(i);
+              }
+              const progress = Math.round(((i + 1) / pdfPages) * 100);
+              progressBar.style.width = `${progress}%`;
+            }
+            if (evenIndices.length > 0) {
+              const evenPages = await evenPdf.copyPages(sourcePdf, evenIndices);
+              evenPages.forEach((page) => evenPdf.addPage(page));
+              const evenPdfBytes = await evenPdf.save();
+              splitResults.push({
+                name: `${getFileNameWithoutExtension(
+                  uploadedFile.name
+                )}_even_pages.pdf`,
+                data: evenPdfBytes,
+              });
+            }
+            if (oddIndices.length > 0) {
+              const oddPages = await oddPdf.copyPages(sourcePdf, oddIndices);
+              oddPages.forEach((page) => oddPdf.addPage(page));
+              const oddPdfBytes = await oddPdf.save();
+              splitResults.push({
+                name: `${getFileNameWithoutExtension(
+                  uploadedFile.name
+                )}_odd_pages.pdf`,
+                data: oddPdfBytes,
+              });
+            }
+          }
+          processingState.classList.add('hidden');
+          showResults();
+        } catch (error) {
+          console.error('Error splitting PDF:', error);
+          alert(
+            'An error occurred while splitting the PDF file. Please try again.'
+          );
+          processingState.classList.add('hidden');
+          pdfPreviewContainer.classList.remove('hidden');
+        }
+      });
+
+      // --- Show Results ---
+      function showResults() {
+        resultFiles.innerHTML = '';
+        resultState.classList.remove('hidden');
+        splitResults.forEach((result, index) => {
+          const resultItem = document.createElement('div');
+          resultItem.className =
+            'flex items-center justify-between bg-white border border-gray-200 rounded-lg p-3';
+          resultItem.innerHTML = `
+            <div class="flex items-center">
+              <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-md flex items-center justify-center text-red-500 mr-3">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+              </div>
+              <div>
+                <div class="font-medium text-gray-800">${
+                  result.name || `output_${index + 1}.pdf`
+                }</div>
+                <div class="text-xs text-gray-500">PDF File</div>
+              </div>
+            </div>
+            <button class="download-btn text-red-500 hover:text-red-600 font-medium flex items-center" data-index="${index}">
+              <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"></path>
+              </svg>
+              Download
+            </button>
+          `;
+          resultFiles.appendChild(resultItem);
+        });
+      }
+
+      // --- File Download ---
+      resultFiles.addEventListener('click', function (e) {
+        const btn = e.target.closest('.download-btn');
+        if (btn) {
+          const index = btn.dataset.index;
+          const result = splitResults[index];
+          download(result.data, result.name, 'application/pdf');
+        }
+      });
+
+      // --- Utility: Read File as ArrayBuffer ---
+      function readFileAsArrayBuffer(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsArrayBuffer(file);
+        });
+      }
+
+      // --- Utility: Format File Size ---
+      function formatFileSize(size) {
+        const kb = 1024,
+          mb = kb * 1024;
+        if (size < kb) return `${size} B`;
+        else if (size < mb) return `${(size / kb).toFixed(1)} KB`;
+        else return `${(size / mb).toFixed(1)} MB`;
+      }
+
+      // --- Utility: Get File Name Without Extension ---
+      function getFileNameWithoutExtension(fileName) {
+        return fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+      }
+
+      // --- Utility: Download Blob ---
+      function download(data, filename, mimeType) {
+        const blob = new Blob([data], { type: mimeType });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+
+      // --- Utility: Parse Page Ranges ---
+      function parsePageRanges(rangeText, totalPages) {
+        // Returns array of arrays, each array is a range of page numbers (1-based)
+        const ranges = rangeText.split(',');
+        const result = [];
+        for (let range of ranges) {
+          range = range.trim();
+          if (!range) continue;
+          if (range.includes('-')) {
+            const [start, end] = range.split('-').map(Number);
+            if (
+              !isNaN(start) &&
+              !isNaN(end) &&
+              start > 0 &&
+              end >= start &&
+              end <= totalPages
+            ) {
+              const arr = [];
+              for (let i = start; i <= end; i++) arr.push(i);
+              result.push(arr);
+            }
+          } else {
+            const page = Number(range);
+            if (!isNaN(page) && page > 0 && page <= totalPages) {
+              result.push([page]);
+            }
+          }
+        }
+        return result;
+      }
+
+      // --- Utility: Reset UI ---
+      function resetUI() {
+        pdfDocument = null;
+        pdfPages = 0;
+        selectedPages = [];
+        splitResults = [];
+        pdfThumbnails.innerHTML = '';
+        extractThumbnails.innerHTML = '';
+        pdfName.textContent = '';
+        pdfSize.textContent = '';
+        resultFiles.innerHTML = '';
+        resultState.classList.add('hidden');
+        progressBar.style.width = '0%';
+      }
+
+      // --- Split Another PDF Button ---
+      splitNewButton.addEventListener('click', function () {
+        resetUI();
+        uploadArea.classList.remove('hidden');
+        pdfPreviewContainer.classList.add('hidden');
+        resultState.classList.add('hidden');
+      });
+
+      // Mobile menu toggle logic
+      document.addEventListener('DOMContentLoaded', function () {
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const hamburger = menuToggle.querySelector('.hamburger');
+
+        menuToggle.addEventListener('click', function () {
+          hamburger.classList.toggle('active');
+          if (mobileMenu.classList.contains('hidden')) {
+            mobileMenu.classList.remove('hidden');
+            setTimeout(() => mobileMenu.classList.add('active'), 10);
+          } else {
+            mobileMenu.classList.remove('active');
+            setTimeout(() => mobileMenu.classList.add('hidden'), 300);
+          }
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function (e) {
+          if (
+            !mobileMenu.contains(e.target) &&
+            !menuToggle.contains(e.target) &&
+            !mobileMenu.classList.contains('hidden')
+          ) {
+            hamburger.classList.remove('active');
+            mobileMenu.classList.remove('active');
+            setTimeout(() => mobileMenu.classList.add('hidden'), 300);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

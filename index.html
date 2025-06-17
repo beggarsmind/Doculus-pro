@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home - Doculus Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+      body {
+        font-family: 'Inter', sans-serif;
+        padding-top: 70px;
+      }
+
+      .header {
+        background-color: white;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+      }
+
+      .dropdown {
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+      }
+
+      /* Only apply margin-left on screens >= 1024px (Tailwind's lg breakpoint) */
+      @media (min-width: 1024px) {
+        .dropdown {
+          margin-left: -28rem;
+        }
+      }
+
+      .dropdown-trigger:hover .dropdown,
+      .dropdown-trigger:focus-within .dropdown {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+
+      .nav-link {
+        position: relative;
+      }
+
+      .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: -4px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background-color: #e74c3c;
+        transition: width 0.3s ease;
+      }
+
+      .nav-link:hover::after {
+        width: 100%;
+      }
+
+      .mobile-menu {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+
+      .mobile-menu.active {
+        transform: translateX(0);
+      }
+
+      .hamburger div {
+        transition: all 0.3s ease;
+      }
+
+      .hamburger.active div:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+      }
+
+      .hamburger.active div:nth-child(2) {
+        opacity: 0;
+      }
+
+      .hamburger.active div:nth-child(3) {
+        transform: rotate(-45deg) translate(5px, -5px);
+      }
+
+      .mobile-dropdown {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+      }
+
+      .mobile-dropdown.active {
+        max-height: 500px;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Header -->
+    <header class="header fixed top-0 left-0 w-full z-50">
+      <div class="container mx-auto px-2 sm:px-4">
+        <div class="flex items-center justify-between h-[60px] sm:h-[70px]">
+          <!-- Logo and Title -->
+          <div class="flex items-center">
+            <a href="#" class="flex items-center">
+              <img
+                src="images/D3.png"
+                alt="Doculus Pro Logo"
+                class="w-14 h-14 sm:w-20 sm:h-20 object-contain"
+              />
+              <span
+                class="ml-1 sm:ml-2 text-lg sm:text-xl font-bold text-gray-800"
+                >Doculus Pro</span
+              >
+            </a>
+          </div>
+
+          <!-- Desktop Navigation -->
+          <nav class="hidden md:flex items-center space-x-6">
+            <a
+              href="index.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Home</a
+            >
+            <a
+              href="Merge_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Merge PDF</a
+            >
+            <a
+              href="Split_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Split PDF</a
+            >
+            <a
+              href="Compress_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Compress PDF</a
+            >
+            <a
+              href="all_pdf.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >All PDF Tools</a
+            >
+          </nav>
+
+          <!-- Mobile Menu Button -->
+          <div class="md:hidden">
+            <button
+              id="menu-toggle"
+              class="focus:outline-none"
+              aria-label="Toggle menu"
+            >
+              <div class="hamburger">
+                <div class="w-6 h-0.5 bg-gray-700 mb-1.5"></div>
+                <div class="w-6 h-0.5 bg-gray-700 mb-1.5"></div>
+                <div class="w-6 h-0.5 bg-gray-700"></div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div
+        id="mobile-menu"
+        class="mobile-menu fixed top-[70px] left-0 w-full h-[calc(100vh-70px)] bg-white z-40 md:hidden"
+      >
+        <div class="p-4">
+          <nav class="space-y-1">
+            <a
+              href="index.html"
+              class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+              >Home</a
+            >
+            <a
+              href="Merge_PDF.html"
+              class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+              >Merge PDF</a
+            >
+            <a
+              href="Split_PDF.html"
+              class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+              >Split PDF</a
+            >
+            <a
+              href="Compress_PDF.html"
+              class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+              >Compress PDF</a
+            >
+            <a
+              href="all_pdf.html"
+              class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+              >All PDF Tools</a
+            >
+
+            <!-- Mobile Convert PDF Dropdown -->
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <div class="container mx-auto px-2 sm:px-4 py-6 sm:py-8">
+      <!-- Hero Section -->
+      <div
+        class="bg-gradient-to-br from-indigo-50 via-white to-pink-50 rounded-2xl shadow-xl p-3 sm:p-4 md:p-8 mb-6 sm:mb-10 border border-indigo-100"
+      >
+        <h1
+          class="text-2xl sm:text-3xl md:text-5xl font-extrabold text-indigo-700 mb-3 sm:mb-4 tracking-tight drop-shadow flex flex-row items-center flex-wrap"
+        >
+          Welcome to
+          <span class="flex items-center ml-2 text-black">
+            <img
+              src="images/D3.png"
+              alt="Doculus Pro Logo"
+              class="w-10 h-10 md:w-16 md:h-16 lg:w-20 lg:h-20 object-contain inline-block mr-2"
+            />
+            <span
+              class="text-lg sm:text-2xl md:text-4xl font-bold text-gray-800"
+              >Doculus Pro</span
+            >
+          </span>
+        </h1>
+        <p class="text-gray-700 text-base sm:text-lg mb-4 sm:mb-6 font-medium">
+          Your
+          <span class="text-indigo-600 font-semibold">all-in-one solution</span>
+          for working with PDF files.
+          <span class="text-black">Edit, convert,</span> and
+          <span class="text-green-600">manage</span> your documents with ease.
+        </p>
+        <p
+          class="text-gray-600 text-sm sm:text-base mb-6 sm:mb-8 leading-relaxed"
+        >
+          <span class="font-bold text-indigo-700">Doculus Pro</span> is a
+          powerful
+          <span class="text-black font-semibold">web-based PDF toolkit</span>
+          that enables users to manage and manipulate PDF documents with
+          ease.<br />
+          It offers essential features such as
+          <span
+            class="inline-block bg-indigo-100 text-indigo-700 font-semibold px-2 py-0.5 rounded ml-1 mr-1 text-xs sm:text-base"
+            >Merge PDF</span
+          >
+          <span
+            class="inline-block bg-red-100 text-red-700 font-semibold px-2 py-0.5 rounded mr-1 text-xs sm:text-base"
+            >Split PDF</span
+          >
+          <span
+            class="inline-block bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded text-xs sm:text-base"
+            >Compress PDF</span
+          >
+          <span
+            class="inline-block bg-gray-200 text-gray-700 font-semibold px-2 py-0.5 rounded text-xs sm:text-base"
+            >All Other PDF Tools</span
+          >.
+        </p>
+        <div class="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
+          <a
+            href="all_pdf.html"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 sm:py-3 px-6 sm:px-8 rounded-lg shadow transition duration-300 text-base sm:text-lg tracking-wide text-center"
+          >
+            Get Started
+          </a>
+        </div>
+      </div>
+
+      <!-- Popular Tools Section -->
+      <div class="mb-8 sm:mb-12">
+        <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">
+          Popular PDF Tools
+        </h2>
+        <div
+          class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6 overflow-x-auto"
+        >
+          <!-- Tool Card 1 -->
+          <div class="tool-card bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="p-6">
+              <div
+                class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4"
+              >
+                <svg
+                  class="w-6 h-6 text-indigo-600"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M8 5a1 1 0 100 2h5.586l-1.293 1.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L13.586 5H8z"
+                  ></path>
+                  <path
+                    d="M12 15a1 1 0 100-2H6.414l1.293-1.293a1 1 0 10-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L6.414 15H12z"
+                  ></path>
+                </svg>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                Merge PDF
+              </h3>
+              <p class="text-gray-600 mb-4">
+                Combine multiple PDF files into a single document. Arrange pages
+                in any order you need.
+              </p>
+              <a
+                href="Merge_PDF.html"
+                class="text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center"
+              >
+                Merge Files
+                <svg
+                  class="w-4 h-4 ml-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  ></path>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Tool Card 2 -->
+          <div class="tool-card bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="p-6">
+              <div
+                class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4"
+              >
+                <svg
+                  class="w-6 h-6 text-red-600"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M5 4a1 1 0 011-1h8a1 1 0 011 1v1H5V4zm4 3V6h2v1h-2zm-3 0V6h2v1H6zm10 0h-3V6h3v1zM5 8h10V7H5v1zm9 3v-2h1v2h-1zm-3 0v-2h2v2h-2zm-3 0v-2h2v2H8zm-3 0v-2h2v2H5zm-1 3a1 1 0 001 1h8a1 1 0 001-1v-2H4v2z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                Split PDF
+              </h3>
+              <p class="text-gray-600 mb-4">
+                Extract pages from your PDF or split it into multiple files.
+                Perfect for large documents.
+              </p>
+              <a
+                href="Split_PDF.html"
+                class="text-red-600 hover:text-red-800 font-medium inline-flex items-center"
+              >
+                Split PDF
+                <svg
+                  class="w-4 h-4 ml-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  ></path>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Tool Card 3 -->
+          <div class="tool-card bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="p-6">
+              <div
+                class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4"
+              >
+                <svg
+                  class="w-6 h-6 text-green-600"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                Compress PDF
+              </h3>
+              <p class="text-gray-600 mb-4">
+                Reduce file size while maintaining quality. Ideal for sharing
+                via email or uploading online.
+              </p>
+              <a
+                href="Compress_PDF.html"
+                class="text-green-600 hover:text-green-800 font-medium inline-flex items-center"
+              >
+                Compress PDF
+                <svg
+                  class="w-4 h-4 ml-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  ></path>
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Features Section -->
+      <div class="px-0 sm:px-4 md:px-8">
+        <h2
+          class="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6 text-center"
+        >
+          Why Choose Doculus Pro
+        </h2>
+        <div
+          class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 md:gap-6"
+        >
+          <!-- Feature 1: Secure & Private -->
+          <div
+            class="bg-white rounded-3xl shadow-xl p-6 flex flex-col justify-between border border-blue-100 hover:shadow-2xl transition-all duration-300"
+          >
+            <div class="flex items-center gap-4 mb-4">
+              <div
+                class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center shadow-sm"
+              >
+                <!-- Lock/Shield Icon -->
+                <svg
+                  class="w-7 h-7 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 17a2 2 0 002-2v-2a2 2 0 00-4 0v2a2 2 0 002 2zm6 0V9a6 6 0 10-12 0v8a2 2 0 002 2h8a2 2 0 002-2z"
+                  />
+                </svg>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-800">
+                Secure & Private
+              </h3>
+            </div>
+            <p class="text-gray-600">
+              Your files are processed locally in your browser. We never store
+              your documents on our servers.
+            </p>
+          </div>
+
+          <!-- Feature 2: Easy to Use -->
+          <div
+            class="bg-white rounded-3xl shadow-xl p-6 flex flex-col justify-between border border-purple-100 hover:shadow-2xl transition-all duration-300"
+          >
+            <div class="flex items-center gap-4 mb-4">
+              <div
+                class="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center shadow-sm"
+              >
+                <!-- Cursor/Hand Icon -->
+                <svg
+                  class="w-7 h-7 text-purple-600"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M7 11.5V7a5 5 0 1110 0v4.5M12 17v2m0 0h-2m2 0h2"
+                  />
+                </svg>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-800">Easy to Use</h3>
+            </div>
+            <p class="text-gray-600">
+              Intuitive interface designed for users of all skill levels. No
+              technical knowledge required.
+            </p>
+          </div>
+
+          <!-- Feature 3: Fast Processing -->
+          <div
+            class="bg-white rounded-3xl shadow-xl p-6 flex flex-col justify-between border border-yellow-100 hover:shadow-2xl transition-all duration-300"
+          >
+            <div class="flex items-center gap-4 mb-4">
+              <div
+                class="w-14 h-14 bg-yellow-50 rounded-2xl flex items-center justify-center shadow-sm"
+              >
+                <!-- Lightning Bolt Icon -->
+                <svg
+                  class="w-7 h-7 text-yellow-500"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-800">
+                Fast Processing
+              </h3>
+            </div>
+            <p class="text-gray-600">
+              Advanced algorithms ensure quick processing of your documents,
+              saving you valuable time.
+            </p>
+          </div>
+
+          <!-- Feature 4: All-in-One Solution -->
+          <div
+            class="bg-white rounded-3xl shadow-xl p-6 flex flex-col justify-between border border-green-100 hover:shadow-2xl transition-all duration-300"
+          >
+            <div class="flex items-center gap-4 mb-4">
+              <div
+                class="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center shadow-sm"
+              >
+                <!-- Grid/Apps Icon -->
+                <svg
+                  class="w-7 h-7 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <rect x="3" y="3" width="7" height="7" rx="2" />
+                  <rect x="14" y="3" width="7" height="7" rx="2" />
+                  <rect x="14" y="14" width="7" height="7" rx="2" />
+                  <rect x="3" y="14" width="7" height="7" rx="2" />
+                </svg>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-800">
+                All-in-One Solution
+              </h3>
+            </div>
+            <p class="text-gray-600">
+              Over 20 PDF tools to handle all your document needs in one
+              convenient platform.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-300 mt-8 sm:mt-12 py-8 sm:py-12">
+      <div class="container mx-auto px-2 sm:px-4">
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8 items-start">
+          <!-- Left: Brand & Links -->
+          <div>
+            <h3 class="text-white text-lg font-semibold mb-4">Doculus Pro</h3>
+
+            <ul class="space-y-2">
+              <li>
+                <a href="index.html" class="hover:text-white transition"
+                  >Home</a
+                >
+              </li>
+              <li>
+                <a href="Merge_PDF.html" class="hover:text-white transition"
+                  >Merge PDF</a
+                >
+              </li>
+              <li>
+                <a href="Split_PDF.html" class="hover:text-white transition"
+                  >Split PDF</a
+                >
+              </li>
+              <li>
+                <a href="Compress_PDF.html" class="hover:text-white transition"
+                  >Compress PDF</a
+                >
+              </li>
+            </ul>
+          </div>
+          <!-- Center: Empty for spacing or add more info if needed -->
+          <div></div>
+          <!-- Right: Social Icons -->
+          <div class="flex flex-col md:items-end items-start">
+            <h3 class="text-white text-lg font-semibold mb-4 md:text-right">
+              Connect with us
+            </h3>
+            <div class="flex space-x-4 mb-4 md:mb-0">
+              <!-- GitHub -->
+              <a
+                href="https://github.com/beggarsmind"
+                class="text-gray-400 hover:text-white transition"
+                target="_blank"
+                rel="noopener"
+                aria-label="GitHub"
+              >
+                <svg
+                  class="h-6 w-6"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M12 .5C5.648.5.5 5.648.5 12c0 5.096 3.292 9.402 7.86 10.936.574.106.784-.248.784-.552 0-.273-.01-.997-.015-1.956-3.197.695-3.872-1.54-3.872-1.54-.522-1.326-1.275-1.68-1.275-1.68-1.043-.713.08-.698.08-.698 1.153.08 1.76 1.183 1.76 1.183 1.025 1.755 2.69 1.248 3.345.954.105-.742.4-1.248.727-1.535-2.552-.29-5.238-1.275-5.238-5.67 0-1.253.448-2.277 1.183-3.078-.12-.29-.513-1.455.113-3.032 0 0 .965-.31 3.16 1.178a11.034 11.034 0 015.755 0c2.195-1.488 3.158-1.178 3.158-1.178.628 1.577.234 2.742.115 3.032.737.8 1.182 1.825 1.182 3.078 0 4.41-2.69 5.377-5.25 5.66.41.352.775 1.053.775 2.123 0 1.534-.014 2.77-.014 3.146 0 .307.207.662.788.55C20.71 21.4 24 17.096 24 12 24 5.648 18.352.5 12 .5z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </a>
+              <!-- Instagram -->
+              <a
+                href="https://www.instagram.com/beggars_mind"
+                class="text-gray-400 hover:text-white transition"
+                target="_blank"
+                rel="noopener"
+                aria-label="Instagram"
+              >
+                <svg
+                  class="h-6 w-6"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M12 2.163c3.204 0 3.584.012 4.85.07 1.17.056 1.97.24 2.423.415a4.92 4.92 0 011.675 1.09 4.926 4.926 0 011.09 1.675c.176.453.36 1.253.415 2.423.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.056 1.17-.24 1.97-.415 2.423a4.92 4.92 0 01-1.09 1.675 4.926 4.926 0 01-1.675 1.09c-.453.176-1.253.36-2.423.415-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.17-.056-1.97-.24-2.423-.415a4.92 4.92 0 01-1.675-1.09 4.926 4.926 0 01-1.09-1.675c-.176-.453-.36-1.253-.415-2.423C2.175 15.747 2.163 15.367 2.163 12s.012-3.584.07-4.85c.056-1.17.24-1.97.415-2.423a4.92 4.92 0 011.09-1.675 4.926 4.926 0 011.675-1.09c.338-.165.705-.41 1.118-.727.345-.135.862-.287 1.82-.332 1.242-.056 1.594-.068 4.75-.068s3.508.012 4.75.068c.958.045 1.475.197 1.82.332a3.097 3.097 0 001.118.727 3.097 3.097 0 00.727-1.118c.135-.345.287-.862.332-1.82.056-1.242.068-1.594.068-4.75s-.012-3.508-.068-4.75c-.045-.958-.197-1.475-.332-1.82a3.097 3.097 0 00-.727-1.118 3.097 3.097 0 00-1.118-.727c-.345-.135-.862-.287-1.82-.332-1.242-.056-1.594-.068-4.75-.068zM12 5.838a6.162 6.162 0 110 12.324 6.162 6.162 0 010-12.324zm0 1.837a4.325 4.325 0 100 8.65 4.325 4.325 0 000-8.65zm6.406-1.108a1.44 1.44 0 110 2.88 1.44 1.44 0 010-2.88z"
+                  />
+                </svg>
+              </a>
+              <!-- LinkedIn -->
+              <a
+                href="https://www.linkedin.com/in/ranjith-kumar807265"
+                class="text-gray-400 hover:text-white transition"
+                target="_blank"
+                rel="noopener"
+                aria-label="LinkedIn"
+              >
+                <svg
+                  class="h-6 w-6"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div
+          class="border-t border-gray-700 mt-6 sm:mt-8 pt-6 sm:pt-8 text-xs sm:text-sm text-gray-400"
+        >
+          <div
+            class="container mx-auto px-2 sm:px-4 flex flex-col md:flex-row md:justify-between md:items-center gap-2 sm:gap-4"
+          >
+            <p
+              class="text-center md:text-left w-full md:w-auto mb-2 md:mb-0 font-medium tracking-wide"
+            >
+              © 2025
+              <span class="text-white font-semibold"
+                ><a
+                  href="index.html"
+                  class="text-white hover:text-indigo-400 font-semibold transition-colors duration-200"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Doculus Pro
+                </a> </span
+              >. All rights reserved.
+            </p>
+            <div
+              class="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 w-full md:w-auto"
+            >
+              <span class="text-center md:text-right block">
+                Developed by
+                <a
+                  href="https://github.com/beggarsmind"
+                  class="text-white hover:text-indigo-400 font-semibold transition-colors duration-200"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Ranjithkumar R.
+                </a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <!-- Page Content -->
+    <script>
+      // Toggle Mobile Menu (index.html version)
+      const menuToggle = document.getElementById('menu-toggle');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const hamburger = document.querySelector('.hamburger');
+
+      menuToggle.addEventListener('click', () => {
+        if (mobileMenu.classList.contains('hidden')) {
+          mobileMenu.classList.remove('hidden');
+          mobileMenu.classList.add('active');
+          hamburger.classList.add('active');
+        } else {
+          mobileMenu.classList.add('hidden');
+          mobileMenu.classList.remove('active');
+          hamburger.classList.remove('active');
+        }
+      });
+
+      // Close all dropdowns before opening a new one
+      function closeAllDropdowns() {
+        document.querySelectorAll('.dropdown').forEach((dropdown) => {
+          dropdown.style.opacity = '0';
+          dropdown.style.visibility = 'hidden';
+          dropdown.style.transform = 'translateY(-10px)';
+        });
+      }
+
+      // Dropdown trigger (for desktop)
+      document.querySelectorAll('.dropdown-trigger').forEach((trigger) => {
+        const dropdown = trigger.querySelector('.dropdown');
+
+        trigger.addEventListener('mouseenter', () => {
+          closeAllDropdowns();
+          dropdown.style.opacity = '1';
+          dropdown.style.visibility = 'visible';
+          dropdown.style.transform = 'translateY(0)';
+        });
+
+        trigger.addEventListener('mouseleave', () => {
+          dropdown.style.opacity = '0';
+          dropdown.style.visibility = 'hidden';
+          dropdown.style.transform = 'translateY(-10px)';
+        });
+      });
+
+      // Mobile dropdown toggle (specific one)
+      const mobileConvertToggle = document.getElementById(
+        'mobile-convert-toggle'
+      );
+      const mobileConvertDropdown = document.getElementById(
+        'mobile-convert-dropdown'
+      );
+      if (mobileConvertToggle && mobileConvertDropdown) {
+        mobileConvertToggle.addEventListener('click', () => {
+          // Optional: close other mobile dropdowns here if you add more in future
+          mobileConvertDropdown.classList.toggle('active');
+          // Animate arrow
+          const arrow = mobileConvertToggle.querySelector('svg');
+          if (arrow) {
+            arrow.style.transform = mobileConvertDropdown.classList.contains(
+              'active'
+            )
+              ? 'rotate(180deg)'
+              : 'rotate(0deg)';
+          }
+        });
+      }
+
+      // Sticky Header on Scroll
+      const header = document.querySelector('.header');
+      let lastScrollTop = 0;
+
+      window.addEventListener('scroll', () => {
+        const scrollTop =
+          window.pageYOffset || document.documentElement.scrollTop;
+
+        if (scrollTop > lastScrollTop && scrollTop > 70) {
+          header.style.transform = 'translateY(-100%)';
+        } else {
+          header.style.transform = 'translateY(0)';
+        }
+
+        header.style.boxShadow =
+          scrollTop > 10
+            ? '0 4px 12px rgba(0, 0, 0, 0.1)'
+            : '0 2px 10px rgba(0, 0, 0, 0.1)';
+        lastScrollTop = scrollTop;
+      });
+
+      // Keyboard Accessibility
+      document.querySelectorAll('.dropdown-trigger').forEach((trigger) => {
+        const dropdown = trigger.querySelector('.dropdown');
+
+        trigger.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            const isVisible = dropdown.style.visibility === 'visible';
+            closeAllDropdowns();
+
+            if (!isVisible) {
+              dropdown.style.opacity = '1';
+              dropdown.style.visibility = 'visible';
+              dropdown.style.transform = 'translateY(0)';
+            }
+          }
+
+          if (e.key === 'Escape') {
+            closeAllDropdowns();
+          }
+        });
+      });
+
+      // Optional: Close dropdowns if clicking outside
+      document.addEventListener('click', (e) => {
+        const isDropdown =
+          e.target.closest('.dropdown') ||
+          e.target.closest('.dropdown-trigger');
+        if (!isDropdown) {
+          closeAllDropdowns();
+        }
+      });
+    </script>
+  </body>
+</html>
