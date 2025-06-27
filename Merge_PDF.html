@@ -30,17 +30,17 @@
     <!-- Header -->
     <header class="bg-white shadow-md fixed w-full top-0 z-10">
       <div
-        class="container mx-auto px-2 py-1 flex justify-between items-center"
+        class="container mx-auto px-2 py-1 flex justify-between items-center min-h-[44px] md:min-h-0"
       >
         <div class="flex items-center space-x-2">
           <a href="#" class="flex items-center">
             <img
               src="images/D3.png"
               alt="Doculus Pro Logo"
-              class="w-10 h-10 sm:w-14 sm:h-14 object-contain"
+              class="w-8 h-8 sm:w-14 sm:h-14 object-contain"
             />
             <span
-              class="ml-1 sm:ml-2 text-base sm:text-lg font-bold text-gray-800"
+              class="ml-1 sm:ml-2 text-sm sm:text-lg font-bold text-gray-800"
               >Doculus Pro</span
             >
           </a>
@@ -80,7 +80,7 @@
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
+            class="h-4 w-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -202,7 +202,7 @@
         <div class="text-center">
           <button
             id="merge-button"
-            class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-6 rounded-md transition-colors duration-200 disabled:bg-indigo-300 disabled:cursor-not-allowed"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-6 rounded-md transition-colors duration-200 disabled:bg-indigo-300 disabled:cursor-not-allowed hidden"
             disabled
           >
             Merge PDFs
@@ -321,16 +321,20 @@
 
         <!-- How It Works Section -->
         <div class="mt-10 border-t border-gray-200 pt-6">
-          <h2 class="text-xl font-semibold text-gray-800 mb-4">
+          <h2 class="text-lg font-semibold text-gray-800 mb-3">
             How to Merge PDF Files
           </h2>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="flex flex-col items-center text-center">
+          <div
+            class="flex flex-row flex-nowrap overflow-x-auto gap-3 md:grid md:grid-cols-3 md:gap-5"
+          >
+            <div
+              class="flex flex-col items-center text-center min-w-[160px] flex-1 md:block md:min-w-0"
+            >
               <div
-                class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-4"
+                class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-3 mx-auto"
               >
                 <svg
-                  class="w-6 h-6"
+                  class="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -343,18 +347,22 @@
                   />
                 </svg>
               </div>
-              <h3 class="font-medium text-gray-800 mb-2">1. Upload Files</h3>
-              <p class="text-gray-600 text-sm">
+              <h3 class="font-medium text-gray-800 mb-1 text-base">
+                1. Upload Files
+              </h3>
+              <p class="text-gray-600 text-xs">
                 Select multiple PDF files or drag & drop them into the upload
                 area
               </p>
             </div>
-            <div class="flex flex-col items-center text-center">
+            <div
+              class="flex flex-col items-center text-center min-w-[160px] flex-1 md:block md:min-w-0"
+            >
               <div
-                class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-4"
+                class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-3 mx-auto"
               >
                 <svg
-                  class="w-6 h-6"
+                  class="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -367,17 +375,19 @@
                   />
                 </svg>
               </div>
-              <h3 class="font-medium text-gray-800 mb-2">2. Merge</h3>
-              <p class="text-gray-600 text-sm">
+              <h3 class="font-medium text-gray-800 mb-1 text-base">2. Merge</h3>
+              <p class="text-gray-600 text-xs">
                 Click the Merge button to combine your PDFs
               </p>
             </div>
-            <div class="flex flex-col items-center text-center">
+            <div
+              class="flex flex-col items-center text-center min-w-[160px] flex-1 md:block md:min-w-0"
+            >
               <div
-                class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-4"
+                class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-3 mx-auto"
               >
                 <svg
-                  class="w-6 h-6"
+                  class="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -390,8 +400,10 @@
                   />
                 </svg>
               </div>
-              <h3 class="font-medium text-gray-800 mb-2">3. Download</h3>
-              <p class="text-gray-600 text-sm">
+              <h3 class="font-medium text-gray-800 mb-1 text-base">
+                3. Download
+              </h3>
+              <p class="text-gray-600 text-xs">
                 Download your merged PDF file and save it to your device
               </p>
             </div>
@@ -563,9 +575,11 @@
           if (selectedFiles.length > 0) {
             filesContainer.classList.remove('hidden');
             mergeButton.disabled = false;
+            mergeButton.classList.remove('hidden');
           } else {
             filesContainer.classList.add('hidden');
             mergeButton.disabled = true;
+            mergeButton.classList.add('hidden');
           }
 
           // Hide result and error containers when files change
