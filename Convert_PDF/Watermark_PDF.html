@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Watermark to PDF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+      body {
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+        transition: all 0.3s ease;
+      }
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #4338ca 0%, #2563eb 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+      }
+      .watermark-progress {
+        transition: width 0.3s;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <!-- Responsive Header (from index.html) -->
+    <header class="header fixed top-0 left-0 w-full z-50 bg-white shadow">
+      <div class="container mx-auto px-4">
+        <div class="flex items-center justify-between h-[70px]">
+          <a href="../index.html" class="flex items-center">
+            <img
+              src="../images/D3.png"
+              alt="Doculus Pro Logo"
+              class="w-12 h-12 object-contain"
+            />
+            <span class="ml-2 text-xl font-bold text-gray-800"
+              >Doculus Pro</span
+            >
+          </a>
+          <nav class="hidden md:flex items-center space-x-6">
+            <a
+              href="../index.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Home</a
+            >
+            <a
+              href="../Merge_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Merge PDF</a
+            >
+            <a
+              href="../Split_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Split PDF</a
+            >
+            <a
+              href="../Compress_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Compress PDF</a
+            >
+            <a href="../all_pdf.html" class="nav-link text-red-600 font-bold"
+              >All PDF Tools</a
+            >
+          </nav>
+          <!-- Mobile Menu Button -->
+          <div class="md:hidden">
+            <button
+              id="menu-toggle"
+              class="focus:outline-none"
+              aria-label="Toggle menu"
+            >
+              <div class="hamburger">
+                <div class="w-6 h-0.5 bg-gray-700 mb-1.5"></div>
+                <div class="w-6 h-0.5 bg-gray-700 mb-1.5"></div>
+                <div class="w-6 h-0.5 bg-gray-700"></div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <!-- Mobile Menu -->
+    <div
+      id="mobile-menu"
+      class="mobile-menu fixed top-[70px] left-0 w-full h-[calc(100vh-70px)] bg-white z-40 md:hidden hidden"
+    >
+      <div class="p-4">
+        <nav class="space-y-1">
+          <a
+            href="../Merge_PDF.html"
+            class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+            >Merge PDF</a
+          >
+          <a
+            href="../Split_PDF.html"
+            class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+            >Split PDF</a
+          >
+          <a
+            href="../Compress_PDF.html"
+            class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+            >Compress PDF</a
+          >
+          <a
+            href="../all_pdf.html"
+            class="block py-3 px-4 text-red-600 font-bold rounded-md"
+            >All PDF Tools</a
+          >
+          <!-- Mobile Convert PDF Dropdown -->
+        </nav>
+      </div>
+    </div>
+
+    <!-- Add Watermark Tool Page -->
+    <main class="container mx-auto px-4 pt-20 pb-12">
+      <div class="max-w-3xl mx-auto">
+        <div class="flex items-center mb-6">
+          <i class="fas fa-tint text-blue-500 text-2xl mr-3"></i>
+          <h2 class="text-2xl font-bold text-gray-800">Add Watermark to PDF</h2>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+          <!-- Upload Area -->
+          <div
+            id="watermark-pdf-drop-zone"
+            class="border-2 border-dashed border-blue-400 rounded-lg p-8 text-center mb-6 cursor-pointer transition"
+            tabindex="0"
+          >
+            <i class="fas fa-file-pdf text-blue-500 text-4xl mb-4"></i>
+            <h3 class="text-xl font-semibold mb-2">Upload PDF File</h3>
+            <p class="text-gray-600 mb-4">
+              Drag and drop a PDF file here or click to browse
+            </p>
+            <label
+              class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg transition-colors cursor-pointer inline-block"
+              tabindex="0"
+            >
+              Select PDF
+              <input
+                id="watermark-pdf-file-input"
+                type="file"
+                accept="application/pdf"
+                class="hidden"
+              />
+            </label>
+            <div id="watermark-pdf-preview" class="mt-6 text-gray-700"></div>
+          </div>
+          <!-- Watermark Options -->
+          <div id="watermark-options-area" class="mb-6 hidden">
+            <h4 class="font-semibold mb-4 text-center">
+              Watermark Text & Position:
+            </h4>
+            <div
+              class="flex flex-col md:flex-row md:items-end gap-4 mb-4 justify-center"
+            >
+              <input
+                id="watermark-text-input"
+                type="text"
+                placeholder="Enter watermark text"
+                class="w-full md:w-1/2 px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                maxlength="40"
+              />
+              <label for="watermark-position-select" class="sr-only"
+                >Watermark Position</label
+              >
+              <select
+                id="watermark-position-select"
+                class="w-full md:w-1/4 px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Watermark Position"
+              >
+                <option value="center">Center (Diagonal)</option>
+                <option value="top-left">Top Left</option>
+                <option value="top-right">Top Right</option>
+                <option value="bottom-left">Bottom Left</option>
+                <option value="bottom-right">Bottom Right</option>
+              </select>
+            </div>
+          </div>
+          <!-- Watermark Button & Download -->
+          <div
+            class="flex flex-col md:flex-row justify-center items-center gap-4 text-center"
+          >
+            <button
+              id="watermark-pdf-btn"
+              class="btn-primary py-3 px-8 rounded-lg text-white font-medium w-full md:w-auto"
+              disabled
+            >
+              Add Watermark
+            </button>
+            <a
+              id="watermark-pdf-download-link"
+              class="inline-block bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-8 rounded-lg transition hidden w-full md:w-auto"
+              download="watermarked.pdf"
+              href="#"
+            >
+              Download PDF
+            </a>
+            <button
+              id="watermark-pdf-try-again-btn"
+              class="bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium py-3 px-8 rounded-lg transition hidden w-full md:w-auto"
+            >
+              Add Watermark to Another PDF
+            </button>
+          </div>
+          <div
+            id="watermark-progress-bar"
+            class="w-full bg-blue-100 rounded-lg h-3 mt-6 hidden"
+          >
+            <div
+              class="watermark-progress bg-blue-500 h-3 rounded-lg"
+              style="width: 0%"
+            ></div>
+          </div>
+          <div
+            id="watermark-result-text"
+            class="mt-6 text-gray-700 whitespace-pre-wrap"
+          ></div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h3 class="text-xl font-semibold mb-4 flex items-center">
+            <i class="fas fa-tint text-blue-500 mr-3"></i>
+            What is Add Watermark?
+          </h3>
+          <p class="text-gray-700 mb-4">
+            <strong>Add Watermark</strong> lets you add a custom watermark text
+            to every page in your PDF file. Choose the text and position, then
+            download your watermarked PDF.
+          </p>
+          <h3 class="text-xl font-semibold mb-4">How to Add a Watermark</h3>
+          <ol class="space-y-3 text-gray-700">
+            <li class="flex">
+              <span
+                class="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0"
+                >1</span
+              >
+              <span
+                >Upload your PDF file by clicking the "Select PDF" button</span
+              >
+            </li>
+            <li class="flex">
+              <span
+                class="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0"
+                >2</span
+              >
+              <span>Enter your watermark text and select the position</span>
+            </li>
+            <li class="flex">
+              <span
+                class="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0"
+                >3</span
+              >
+              <span>Click "Add Watermark" to process your file</span>
+            </li>
+            <li class="flex">
+              <span
+                class="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0"
+                >4</span
+              >
+              <span>Download your watermarked PDF file</span>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </main>
+    <script>
+      // Mobile menu toggle
+      const menuToggle = document.getElementById('menu-toggle');
+      const mobileMenu = document.getElementById('mobile-menu');
+      if (menuToggle && mobileMenu) {
+        menuToggle.addEventListener('click', () => {
+          mobileMenu.classList.toggle('hidden');
+        });
+        mobileMenu.querySelectorAll('a').forEach((link) => {
+          link.addEventListener('click', () =>
+            mobileMenu.classList.add('hidden')
+          );
+        });
+      }
+
+      // Watermark PDF logic
+      const dropZone = document.getElementById('watermark-pdf-drop-zone');
+      const fileInput = document.getElementById('watermark-pdf-file-input');
+      const preview = document.getElementById('watermark-pdf-preview');
+      const watermarkBtn = document.getElementById('watermark-pdf-btn');
+      const downloadLink = document.getElementById(
+        'watermark-pdf-download-link'
+      );
+      const tryAgainBtn = document.getElementById(
+        'watermark-pdf-try-again-btn'
+      );
+      const progressBar = document.getElementById('watermark-progress-bar');
+      const progress = progressBar
+        ? progressBar.querySelector('.watermark-progress')
+        : null;
+      const resultText = document.getElementById('watermark-result-text');
+      const optionsArea = document.getElementById('watermark-options-area');
+      const watermarkTextInput = document.getElementById(
+        'watermark-text-input'
+      );
+      const watermarkPositionSelect = document.getElementById(
+        'watermark-position-select'
+      );
+      let selectedFile = null;
+
+      // Drag & Drop and file selection
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('ring-2', 'ring-blue-400');
+      });
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('ring-2', 'ring-blue-400');
+      });
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('ring-2', 'ring-blue-400');
+        handleFile(e.dataTransfer.files[0]);
+      });
+      dropZone.addEventListener('click', () => {
+        fileInput.value = '';
+        fileInput.click();
+      });
+      dropZone.querySelector('label').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          fileInput.value = '';
+          fileInput.click();
+        }
+      });
+      dropZone.querySelector('label').addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+
+      fileInput.addEventListener('change', (e) => {
+        handleFile(e.target.files[0]);
+      });
+
+      function handleFile(file) {
+        if (!file || !file.name.match(/\.pdf$/i)) {
+          preview.textContent = 'Please select a valid PDF file.';
+          watermarkBtn.disabled = true;
+          optionsArea.classList.add('hidden');
+          return;
+        }
+        selectedFile = file;
+        preview.textContent = `Selected: ${file.name}`;
+        watermarkBtn.disabled = false;
+        downloadLink.classList.add('hidden');
+        tryAgainBtn.classList.add('hidden');
+        resultText.textContent = '';
+        optionsArea.classList.remove('hidden');
+      }
+
+      // Enable/disable button based on watermark text
+      watermarkTextInput.addEventListener('input', () => {
+        watermarkBtn.disabled = !watermarkTextInput.value.trim();
+      });
+
+      // Main logic using pdf-lib
+      watermarkBtn.addEventListener('click', async () => {
+        if (!selectedFile || !watermarkTextInput.value.trim()) return;
+        watermarkBtn.disabled = true;
+        downloadLink.classList.add('hidden');
+        tryAgainBtn.classList.add('hidden');
+        resultText.textContent = '';
+        if (progressBar) progressBar.classList.remove('hidden');
+        if (progress) progress.style.width = '0%';
+
+        try {
+          const arrayBuffer = await selectedFile.arrayBuffer();
+          const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+          const totalPages = pdfDoc.getPageCount();
+          const font = await pdfDoc.embedFont(
+            PDFLib.StandardFonts.HelveticaBold
+          );
+          const watermark = watermarkTextInput.value.trim();
+          const position = watermarkPositionSelect.value;
+
+          for (let i = 0; i < totalPages; i++) {
+            const page = pdfDoc.getPage(i);
+            const { width, height } = page.getSize();
+            let x = width / 2,
+              y = height / 2,
+              rotate = 45, // Diagonal from left-bottom to right-top
+              size = 85, // Increased size
+              opacity = 0.2;
+
+            // Always diagonal, centered, large, grey
+            if (position === 'center') {
+              x = width / 2;
+              y = height / 2;
+              rotate = 45;
+            } else if (position === 'top-left') {
+              x = 40;
+              y = height - 60;
+              rotate = 0;
+            } else if (position === 'top-right') {
+              x = width - 200;
+              y = height - 60;
+              rotate = 0;
+            } else if (position === 'bottom-left') {
+              x = 40;
+              y = 40;
+              rotate = 0;
+            } else if (position === 'bottom-right') {
+              x = width - 200;
+              y = 40;
+              rotate = 0;
+            }
+
+            // ...inside the for loop where page.drawText is called...
+            if (position === 'center') {
+              // Center watermark diagonally in the middle of the page
+              const textWidth = font.widthOfTextAtSize(watermark, size);
+              const textHeight = size;
+              // Center point
+              x = width / 2 - textWidth / 2;
+              y = height / 2 - textHeight / 2;
+              rotate = 45;
+              page.drawText(watermark, {
+                x: x,
+                y: y,
+                size: size,
+                font: font,
+                color: PDFLib.rgb(0.5, 0.5, 0.5), // grey
+                opacity: opacity,
+                rotate: PDFLib.degrees(rotate),
+              });
+            } else {
+              // Other positions
+              page.drawText(watermark, {
+                x: x,
+                y: y,
+                size: 40,
+                font: font,
+                color: PDFLib.rgb(0.5, 0.5, 0.5), // grey
+                opacity: opacity,
+                rotate: PDFLib.degrees(rotate),
+              });
+            }
+            if (progress)
+              progress.style.width =
+                Math.round(((i + 1) / totalPages) * 100) + '%';
+          }
+
+          const pdfBytes = await pdfDoc.save();
+          const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+          const url = URL.createObjectURL(blob);
+          downloadLink.href = url;
+          downloadLink.download = selectedFile.name.replace(
+            /\.pdf$/i,
+            `-watermarked.pdf`
+          );
+          downloadLink.classList.remove('hidden');
+          tryAgainBtn.classList.remove('hidden');
+          resultText.textContent = 'Watermark added. Download your PDF below.';
+          watermarkBtn.disabled = false;
+        } catch (err) {
+          resultText.textContent =
+            'Sorry, this PDF could not be processed. It may be too complex or damaged.';
+          tryAgainBtn.classList.remove('hidden');
+          watermarkBtn.disabled = false;
+        }
+        if (progress) progress.style.width = '100%';
+      });
+
+      tryAgainBtn.addEventListener('click', () => {
+        selectedFile = null;
+        preview.textContent = '';
+        watermarkBtn.disabled = true;
+        downloadLink.classList.add('hidden');
+        tryAgainBtn.classList.add('hidden');
+        resultText.textContent = '';
+        optionsArea.classList.add('hidden');
+        watermarkTextInput.value = '';
+        if (progressBar) progressBar.classList.add('hidden');
+        if (progress) progress.style.width = '0%';
+      });
+    </script>
+  </body>
+</html>

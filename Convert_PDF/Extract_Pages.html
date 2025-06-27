@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Extract Pages from PDF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+      body {
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+        transition: all 0.3s ease;
+      }
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #4338ca 0%, #2563eb 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+      }
+      .checkbox-page:checked + label {
+        background: #3b82f6;
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <!-- Header & Navigation (same as index.html) -->
+    <header class="header fixed top-0 left-0 w-full z-50 bg-white shadow">
+      <div class="container mx-auto px-4">
+        <div class="flex items-center justify-between h-[70px]">
+          <a href="../index.html" class="flex items-center">
+            <img
+              src="../images/D3.png"
+              alt="Doculus Pro Logo"
+              class="w-12 h-12 object-contain"
+            />
+            <span class="ml-2 text-xl font-bold text-gray-800"
+              >Doculus Pro</span
+            >
+          </a>
+          <nav class="hidden md:flex items-center space-x-6">
+            <a
+              href="../index.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Home</a
+            >
+            <a
+              href="../Merge_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Merge PDF</a
+            >
+            <a
+              href="../Split_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Split PDF</a
+            >
+            <a
+              href="../Compress_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Compress PDF</a
+            >
+            <a href="../all_pdf.html" class="nav-link text-red-600 font-bold"
+              >All PDF Tools</a
+            >
+          </nav>
+          <!-- Mobile Menu Button -->
+          <div class="md:hidden">
+            <button
+              id="menu-toggle"
+              class="focus:outline-none"
+              aria-label="Toggle menu"
+            >
+              <div class="hamburger">
+                <div class="w-6 h-0.5 bg-gray-700 mb-1.5"></div>
+                <div class="w-6 h-0.5 bg-gray-700 mb-1.5"></div>
+                <div class="w-6 h-0.5 bg-gray-700"></div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <!-- Mobile Menu -->
+    <div
+      id="mobile-menu"
+      class="mobile-menu fixed top-[70px] left-0 w-full h-[calc(100vh-70px)] bg-white z-40 md:hidden hidden"
+    >
+      <div class="p-4">
+        <nav class="space-y-1">
+          <a
+            href="Merge_PDF.html"
+            class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+            >Merge PDF</a
+          >
+          <a
+            href="Split_PDF.html"
+            class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+            >Split PDF</a
+          >
+          <a
+            href="Compress_PDF.html"
+            class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+            >Compress PDF</a
+          >
+          <a
+            href="all_pdf.html"
+            class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+            >All PDF Tools</a
+          >
+          <!-- Mobile Convert PDF Dropdown -->
+        </nav>
+      </div>
+    </div>
+    <!-- Extract Pages Tool Content -->
+    <main class="container mx-auto px-4 pt-24 pb-12">
+      <div class="max-w-3xl mx-auto">
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+          <div class="flex items-center mb-6">
+            <i class="fas fa-copy text-green-500 text-2xl mr-3"></i>
+            <h2 class="text-2xl font-bold text-gray-800">
+              Extract Pages from PDF
+            </h2>
+          </div>
+          <p class="text-gray-600 mb-6">
+            Select and extract specific pages from your PDF file easily.
+          </p>
+          <!-- Upload Area -->
+          <div
+            id="extract-pdf-drop-zone"
+            class="border-2 border-dashed border-green-400 rounded-lg p-8 text-center mb-6 cursor-pointer transition"
+            tabindex="0"
+          >
+            <i class="fas fa-file-pdf text-green-500 text-4xl mb-4"></i>
+            <h3 class="text-xl font-semibold mb-2">Upload PDF File</h3>
+            <p class="text-gray-600 mb-4">
+              Drag and drop a PDF file here or click to browse
+            </p>
+            <label
+              class="bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg transition-colors cursor-pointer inline-block"
+              tabindex="0"
+            >
+              Select PDF
+              <input
+                id="extract-pdf-file-input"
+                type="file"
+                accept="application/pdf"
+                class="hidden"
+              />
+            </label>
+            <div id="extract-pdf-preview" class="mt-6 text-gray-700"></div>
+          </div>
+          <!-- Page Selection -->
+          <div id="extract-pdf-pages-area" class="mb-6 hidden">
+            <h4 class="font-semibold mb-2">Select pages to extract:</h4>
+            <div id="extract-pdf-pages-list" class="flex flex-wrap gap-2"></div>
+          </div>
+          <!-- Extract Button & Download -->
+          <div
+            class="flex flex-col md:flex-row justify-center items-center gap-4 text-center"
+          >
+            <button
+              id="extract-pdf-convert-btn"
+              class="bg-green-600 hover:bg-green-700 py-3 px-8 rounded-lg text-white font-medium w-full md:w-auto"
+              disabled
+            >
+              Extract Selected Pages
+            </button>
+            <a
+              id="extract-pdf-download-link"
+              class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg transition hidden w-full md:w-auto"
+              download="extracted-pages.pdf"
+              href="#"
+            >
+              Download PDF
+            </a>
+            <button
+              id="extract-pdf-try-again-btn"
+              class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-medium py-3 px-8 rounded-lg transition hidden w-full md:w-auto"
+            >
+              Extract Pages from Another PDF
+            </button>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h2 class="text-xl font-bold text-green-700 mb-4 flex items-center">
+            <i class="fas fa-copy text-green-500 mr-3"></i>
+            What is Extract Pages?
+          </h2>
+          <p class="text-gray-700 mb-4">
+            <strong>Extract Pages</strong> is a tool that allows you to select
+            specific pages from a PDF document and save them as a new, separate
+            PDF file. This is useful when you only need certain pages from a
+            large PDF, such as extracting a chapter from a book, saving
+            important sections from a report, or sharing only relevant pages
+            with others.
+          </p>
+          <h3 class="text-xl font-semibold mb-4">
+            How to Extract Pages from PDF
+          </h3>
+          <ol class="space-y-3 text-gray-700">
+            <li class="flex">
+              <span
+                class="bg-green-100 text-green-600 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0"
+                >1</span
+              >
+              <span
+                >Upload your PDF file by clicking the "Select PDF" button</span
+              >
+            </li>
+            <li class="flex">
+              <span
+                class="bg-green-100 text-green-600 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0"
+                >2</span
+              >
+              <span>Select the pages you want to extract</span>
+            </li>
+            <li class="flex">
+              <span
+                class="bg-green-100 text-green-600 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0"
+                >3</span
+              >
+              <span
+                >Click "Extract Selected Pages" to generate your new PDF</span
+              >
+            </li>
+            <li class="flex">
+              <span
+                class="bg-green-100 text-green-600 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0"
+                >4</span
+              >
+              <span>Download your extracted PDF file</span>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </main>
+    <script>
+      // Mobile menu toggle
+      const menuToggle = document.getElementById('menu-toggle');
+      const mobileMenu = document.getElementById('mobile-menu');
+      if (menuToggle && mobileMenu) {
+        menuToggle.addEventListener('click', () => {
+          mobileMenu.classList.toggle('hidden');
+        });
+        mobileMenu.querySelectorAll('a').forEach((link) => {
+          link.addEventListener('click', () =>
+            mobileMenu.classList.add('hidden')
+          );
+        });
+      }
+
+      // Elements
+      const dropZone = document.getElementById('extract-pdf-drop-zone');
+      const fileInput = document.getElementById('extract-pdf-file-input');
+      const preview = document.getElementById('extract-pdf-preview');
+      const convertBtn = document.getElementById('extract-pdf-convert-btn');
+      const downloadLink = document.getElementById('extract-pdf-download-link');
+      const tryAgainBtn = document.getElementById('extract-pdf-try-again-btn');
+      const pagesArea = document.getElementById('extract-pdf-pages-area');
+      const pagesList = document.getElementById('extract-pdf-pages-list');
+      let pdfDoc = null;
+      let pageCount = 0;
+      let selectedFile = null;
+      let extractPages = [];
+
+      // Drag & Drop
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('ring-2', 'ring-green-400');
+      });
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('ring-2', 'ring-green-400');
+      });
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('ring-2', 'ring-green-400');
+        handleFile(e.dataTransfer.files[0]);
+      });
+      dropZone.addEventListener('click', () => {
+        fileInput.value = '';
+        fileInput.click();
+      });
+      dropZone.querySelector('label').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          fileInput.value = '';
+          fileInput.click();
+        }
+      });
+      dropZone.querySelector('label').addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+
+      fileInput.addEventListener('change', (e) => {
+        handleFile(e.target.files[0]);
+      });
+
+      function handleFile(file) {
+        if (!file || !file.name.match(/\.pdf$/i)) {
+          preview.textContent = 'Please select a valid PDF file.';
+          convertBtn.disabled = true;
+          pagesArea.classList.add('hidden');
+          return;
+        }
+        selectedFile = file;
+        preview.textContent = `Selected: ${file.name}`;
+        convertBtn.disabled = true;
+        downloadLink.classList.add('hidden');
+        tryAgainBtn.classList.add('hidden');
+        pagesArea.classList.add('hidden');
+        loadPdfPages(file);
+      }
+
+      async function loadPdfPages(file) {
+        const arrayBuffer = await file.arrayBuffer();
+        pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+        pageCount = pdfDoc.getPageCount();
+        pagesList.innerHTML = '';
+        extractPages = [];
+        for (let i = 0; i < pageCount; i++) {
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.className = 'checkbox-page hidden';
+          checkbox.id = `page-${i + 1}`;
+          checkbox.value = i;
+          const label = document.createElement('label');
+          label.htmlFor = `page-${i + 1}`;
+          label.className =
+            'cursor-pointer border px-3 py-1 rounded-lg bg-gray-100 hover:bg-green-100 transition select-none';
+          label.textContent = `Page ${i + 1}`;
+          checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+              extractPages.push(i);
+              label.classList.add('bg-green-600', 'text-white');
+            } else {
+              extractPages = extractPages.filter((idx) => idx !== i);
+              label.classList.remove('bg-green-600', 'text-white');
+            }
+            convertBtn.disabled = extractPages.length === 0;
+          });
+          pagesList.appendChild(checkbox);
+          pagesList.appendChild(label);
+        }
+        pagesArea.classList.remove('hidden');
+      }
+
+      convertBtn.addEventListener('click', async () => {
+        if (!pdfDoc || extractPages.length === 0) return;
+        convertBtn.disabled = true;
+        downloadLink.classList.add('hidden');
+        tryAgainBtn.classList.add('hidden');
+        // Create new PDF with only selected pages
+        const newPdf = await PDFLib.PDFDocument.create();
+        for (let i = 0; i < pageCount; i++) {
+          if (extractPages.includes(i)) {
+            const [copiedPage] = await newPdf.copyPages(pdfDoc, [i]);
+            newPdf.addPage(copiedPage);
+          }
+        }
+        const pdfBytes = await newPdf.save();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        downloadLink.href = url;
+        downloadLink.download = selectedFile.name.replace(
+          /\.pdf$/i,
+          '-extracted.pdf'
+        );
+        downloadLink.classList.remove('hidden');
+        tryAgainBtn.classList.remove('hidden');
+        convertBtn.disabled = false;
+      });
+
+      tryAgainBtn.addEventListener('click', () => {
+        selectedFile = null;
+        preview.textContent = '';
+        convertBtn.disabled = true;
+        downloadLink.classList.add('hidden');
+        tryAgainBtn.classList.add('hidden');
+        pagesArea.classList.add('hidden');
+        pagesList.innerHTML = '';
+      });
+    </script>
+  </body>
+</html>

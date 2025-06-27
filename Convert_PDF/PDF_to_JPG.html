@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doculus Pro - PDF to JPG Converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <style>
+      /* Remove all inline styles from HTML, use only classes and this style block */
+      .drop-zone {
+        border: 2px dashed #d1d5db;
+        transition: all 0.3s ease;
+      }
+      .drop-zone:hover,
+      .drop-zone.active {
+        background-color: transparent;
+      }
+      .progress-bar {
+        transition: width 0.3s ease;
+      }
+      .converted-image {
+        transition: transform 0.2s ease;
+      }
+      .converted-image:hover {
+        transform: scale(1.02);
+      }
+      .btn-primary {
+        transition: all 0.2s ease;
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+      /* Remove all inline style attributes from HTML elements */
+      [style] {
+        /* Remove all inline styles */
+        all: unset !important;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <!-- Header & Navigation (index.html style) -->
+    <header class="header fixed top-0 left-0 w-full z-50 bg-white shadow">
+      <div class="container mx-auto px-4">
+        <div class="flex items-center justify-between h-[70px]">
+          <a href="../index.html" class="flex items-center">
+            <img
+              src="../images/D3.png"
+              alt="Doculus Pro Logo"
+              class="w-12 h-12 object-contain"
+            />
+            <span class="ml-2 text-xl font-bold text-gray-800"
+              >Doculus Pro</span
+            >
+          </a>
+          <nav class="hidden md:flex items-center space-x-6">
+            <a
+              href="../index.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Home</a
+            >
+            <a
+              href="../Merge_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Merge PDF</a
+            >
+            <a
+              href="../Split_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Split PDF</a
+            >
+            <a
+              href="../Compress_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Compress PDF</a
+            >
+            <a href="../all_pdf.html" class="nav-link text-red-600 font-bold"
+              >All PDF Tools</a
+            >
+          </nav>
+          <!-- Mobile Menu Button -->
+          <div class="md:hidden">
+            <button
+              id="menu-toggle"
+              class="focus:outline-none"
+              aria-label="Toggle menu"
+            >
+              <div class="hamburger">
+                <div class="w-6 h-0.5 bg-gray-700 mb-1.5"></div>
+                <div class="w-6 h-0.5 bg-gray-700 mb-1.5"></div>
+                <div class="w-6 h-0.5 bg-gray-700"></div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div
+      id="mobile-menu"
+      class="mobile-menu fixed top-[70px] left-0 w-full h-[calc(100vh-70px)] bg-white z-40 md:hidden hidden"
+    >
+      <div class="p-4">
+        <nav class="space-y-1">
+          <a
+            href="Merge_PDF.html"
+            class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+            >Merge PDF</a
+          >
+          <a
+            href="Split_PDF.html"
+            class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+            >Split PDF</a
+          >
+          <a
+            href="Compress_PDF.html"
+            class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+            >Compress PDF</a
+          >
+          <a
+            href="all_pdf.html"
+            class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+            >All PDF Tools</a
+          >
+          <!-- Mobile Convert PDF Dropdown -->
+        </nav>
+      </div>
+    </div>
+
+    <main class="container mx-auto px-4 pt-32 pb-12">
+      <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-10">
+          <h1
+            class="text-3xl md:text-4xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3"
+          >
+            <img
+              src="../images/D3.png"
+              alt="Doculus Pro Logo"
+              class="inline-block w-10 h-10 md:w-12 md:h-12 object-contain mx-2"
+            />
+            PDF to JPG Converter
+          </h1>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <!-- Upload Area -->
+          <div
+            id="drop-zone"
+            class="drop-zone border-2 border-dashed border-red-400 bg-gradient-to-br from-red-50 to-white rounded-xl p-10 text-center mb-6 cursor-pointer transition focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 shadow-lg hover:shadow-xl flex flex-col items-center justify-center"
+            tabindex="0"
+            aria-label="PDF upload area. Drag and drop or click to select PDF."
+            title="PDF upload area. Drag and drop or click to select PDF."
+          >
+            <svg
+              class="w-16 h-16 text-red-400 mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+              ></path>
+            </svg>
+            <h3 class="text-2xl font-bold mb-2 text-gray-800">
+              Upload PDF File
+            </h3>
+            <p class="text-gray-600 mb-4 text-base">
+              Drag and drop a PDF file here or click to browse
+            </p>
+            <label
+              id="select-file-btn"
+              class="bg-red-500 hover:bg-red-600 text-white py-2 px-8 rounded-lg transition-colors cursor-pointer inline-block font-medium shadow focus:outline-none focus:ring-2 focus:ring-red-500"
+              tabindex="0"
+              aria-label="Select PDF file to upload"
+              title="Select PDF file to upload"
+            >
+              <span class="flex items-center gap-2">
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
+                </svg>
+                Select PDF File
+              </span>
+              <input
+                type="file"
+                id="file-input"
+                class="hidden"
+                accept=".pdf"
+                aria-label="File input for PDF"
+                title="File input for PDF"
+              />
+            </label>
+            <p class="text-sm text-gray-500 mt-4">Maximum file size: 50MB.</p>
+          </div>
+
+          <!-- File Info Section (Hidden initially) -->
+          <div
+            id="file-info"
+            class="bg-white rounded-xl shadow-md p-6 mb-6 hidden"
+          >
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="bg-red-100 p-3 rounded-lg mr-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-8 w-8 text-red-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12h6m-6 4h6v-2H9v2zm2-16H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V6l-6-6z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3
+                    id="file-name"
+                    class="font-medium text-gray-800 text-lg"
+                  ></h3>
+                  <p id="file-size" class="text-gray-500 text-sm"></p>
+                </div>
+              </div>
+              <button
+                id="convert-btn"
+                class="btn-primary bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-6 rounded-lg flex items-center"
+              >
+                <span>Convert to JPG</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 ml-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M14 5l7 7m0 0l-7 7m7-7H3"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Progress Section (Hidden initially) -->
+          <div
+            id="progress-section"
+            class="bg-white rounded-xl shadow-md p-6 mb-6 hidden"
+          >
+            <h3 class="font-medium text-gray-800 text-lg mb-4">
+              Converting PDF to JPG...
+            </h3>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+              <div
+                id="progress-bar"
+                class="progress-bar bg-red-500 h-2.5 rounded-full"
+                style="width: 0%"
+              ></div>
+            </div>
+            <p
+              id="progress-text"
+              class="text-sm text-gray-500 mt-2 text-center"
+            >
+              0%
+            </p>
+          </div>
+
+          <!-- Results Section (Hidden initially) -->
+          <div
+            id="results-section"
+            class="bg-white rounded-xl shadow-md p-6 mb-6 hidden"
+          >
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="font-medium text-gray-800 text-lg">
+                Converted Images
+              </h3>
+              <button
+                id="download-all-btn"
+                class="btn-primary bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-6 rounded-lg flex items-center"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
+                </svg>
+                <span>Download All</span>
+              </button>
+            </div>
+            <div
+              id="images-container"
+              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              <!-- Images will be added here dynamically -->
+            </div>
+          </div>
+
+          <!-- Try Again Button (Hidden initially) -->
+          <div id="try-again-container" class="text-center hidden">
+            <button
+              id="try-again-btn"
+              class="btn-primary bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-8 rounded-lg"
+            >
+              Convert Another PDF
+            </button>
+          </div>
+
+          <!-- How It Works Section -->
+          <div class="mt-10 border-t border-gray-200 pt-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">
+              How to Convert PDF to JPG
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="flex flex-col items-center text-center">
+                <div
+                  class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-4"
+                >
+                  <svg
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                    ></path>
+                  </svg>
+                </div>
+                <h3 class="font-medium text-gray-800 mb-2">1. Upload PDF</h3>
+                <p class="text-gray-600 text-sm">
+                  Select or drag & drop your PDF file into the upload area.
+                </p>
+              </div>
+              <div class="flex flex-col items-center text-center">
+                <div
+                  class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-4"
+                >
+                  <svg
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+                    ></path>
+                  </svg>
+                </div>
+                <h3 class="font-medium text-gray-800 mb-2">
+                  2. Convert to JPG
+                </h3>
+                <p class="text-gray-600 text-sm">
+                  Click "Convert to JPG" and wait for the conversion to finish.
+                </p>
+              </div>
+              <div class="flex flex-col items-center text-center">
+                <div
+                  class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-4"
+                >
+                  <svg
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    ></path>
+                  </svg>
+                </div>
+                <h3 class="font-medium text-gray-800 mb-2">3. Download</h3>
+                <p class="text-gray-600 text-sm">
+                  Download your JPG images individually or as a ZIP file.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      // PDF.js worker
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+      // DOM elements
+      const dropZone = document.getElementById('drop-zone');
+      const fileInput = document.getElementById('file-input');
+      const selectFileBtn = document.getElementById('select-file-btn');
+      const fileInfo = document.getElementById('file-info');
+      const fileName = document.getElementById('file-name');
+      const fileSize = document.getElementById('file-size');
+      const convertBtn = document.getElementById('convert-btn');
+      const progressSection = document.getElementById('progress-section');
+      const progressBar = document.getElementById('progress-bar');
+      const progressText = document.getElementById('progress-text');
+      const resultsSection = document.getElementById('results-section');
+      const imagesContainer = document.getElementById('images-container');
+      const downloadAllBtn = document.getElementById('download-all-btn');
+      const tryAgainContainer = document.getElementById('try-again-container');
+      const tryAgainBtn = document.getElementById('try-again-btn');
+
+      // Variables
+      let selectedFile = null;
+      let convertedImages = [];
+
+      // Event listeners
+      // Clicking the drop zone or the label triggers file input
+      dropZone.addEventListener('click', () => {
+        fileInput.value = ''; // <-- Reset before opening dialog
+        fileInput.click();
+      });
+      selectFileBtn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          fileInput.value = ''; // <-- Reset before opening dialog
+          fileInput.click();
+        }
+      });
+      fileInput.addEventListener('change', handleFileSelect);
+      convertBtn.addEventListener('click', convertPdfToJpg);
+      downloadAllBtn.addEventListener('click', downloadAllImages);
+      if (tryAgainBtn) {
+        tryAgainBtn.addEventListener('click', resetConverter);
+      }
+
+      // Drag and drop functionality
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('active');
+      });
+
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('active');
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('active');
+        if (
+          e.dataTransfer.files.length > 0 &&
+          e.dataTransfer.files[0].type === 'application/pdf'
+        ) {
+          handleFile(e.dataTransfer.files[0]);
+        } else {
+          alert('Please select a valid PDF file.');
+        }
+      });
+
+      // Handle file selection
+      function handleFileSelect(e) {
+        if (e.target.files.length > 0) {
+          const file = e.target.files[0];
+          if (file.type === 'application/pdf') {
+            handleFile(file);
+          } else {
+            alert('Please select a valid PDF file.');
+          }
+        }
+      }
+
+      function handleFile(file) {
+        selectedFile = file;
+        // Display file info
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+        fileInfo.classList.remove('hidden');
+        dropZone.classList.add('hidden');
+        // Reset previous results
+        resultsSection.classList.add('hidden');
+        tryAgainContainer.classList.add('hidden');
+        progressSection.classList.add('hidden');
+        imagesContainer.innerHTML = '';
+        convertedImages = [];
+      }
+
+      // Format file size
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+
+      // Convert PDF to JPG
+      async function convertPdfToJpg() {
+        if (!selectedFile) return;
+
+        // Show progress section
+        fileInfo.classList.add('hidden');
+        progressSection.classList.remove('hidden');
+
+        try {
+          // Load the PDF file
+          const arrayBuffer = await selectedFile.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          const totalPages = pdf.numPages;
+
+          convertedImages = [];
+
+          // Process each page
+          for (let i = 1; i <= totalPages; i++) {
+            // Update progress
+            const progress = Math.round(((i - 1) / totalPages) * 100);
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `${progress}% (Page ${i} of ${totalPages})`;
+
+            // Get the page
+            const page = await pdf.getPage(i);
+
+            // Set scale for better quality
+            const viewport = page.getViewport({ scale: 2.0 });
+
+            // Prepare canvas for rendering
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            // Render PDF page to canvas
+            await page.render({
+              canvasContext: context,
+              viewport: viewport,
+            }).promise;
+
+            // Convert canvas to JPG
+            const jpgUrl = canvas.toDataURL('image/jpeg', 0.9);
+            convertedImages.push({
+              url: jpgUrl,
+              name: `${selectedFile.name.replace(/\.pdf$/i, '')}_page_${i}.jpg`,
+            });
+          }
+
+          // Update progress to 100%
+          progressBar.style.width = '100%';
+          progressText.textContent = '100% - Conversion complete!';
+
+          // Show results after a short delay
+          setTimeout(() => {
+            displayResults();
+          }, 500);
+        } catch (error) {
+          console.error('Error converting PDF:', error);
+          alert(
+            'An error occurred while converting the PDF. Please try again.'
+          );
+          resetConverter();
+        }
+      }
+
+      // Display converted images
+      function displayResults() {
+        progressSection.classList.add('hidden');
+        resultsSection.classList.remove('hidden');
+        tryAgainContainer.classList.remove('hidden');
+
+        // Clear previous results
+        imagesContainer.innerHTML = '';
+
+        // Add each image to the container
+        convertedImages.forEach((image, index) => {
+          const imageCard = document.createElement('div');
+          imageCard.className =
+            'converted-image bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md';
+
+          imageCard.innerHTML = `
+                    <div class="relative pb-[70%] overflow-hidden bg-gray-100">
+                        <img src="${image.url}" alt="Page ${
+            index + 1
+          }" class="absolute inset-0 w-full h-full object-contain" />
+                    </div>
+                    <div class="p-4">
+                        <p class="text-gray-700 font-medium mb-2">Page ${
+                          index + 1
+                        }</p>
+                        <button class="download-btn w-full bg-red-100 hover:bg-red-200 text-red-700 font-medium py-2 px-4 rounded-lg flex items-center justify-center transition-colors" data-index="${index}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download
+                        </button>
+                    </div>
+                `;
+
+          imagesContainer.appendChild(imageCard);
+
+          // Add event listener to download button
+          const downloadBtn = imageCard.querySelector('.download-btn');
+          downloadBtn.addEventListener('click', () => {
+            downloadImage(index);
+          });
+        });
+      }
+
+      // Download a single image
+      function downloadImage(index) {
+        const image = convertedImages[index];
+        const link = document.createElement('a');
+        link.href = image.url;
+        link.download = image.name;
+        link.click();
+      }
+
+      // Download all images as ZIP
+      async function downloadAllImages() {
+        if (convertedImages.length === 0) return;
+
+        const zip = new JSZip();
+
+        // Add each image to the ZIP
+        for (const image of convertedImages) {
+          // Convert data URL to blob
+          const imageData = image.url.split(',')[1];
+          zip.file(image.name, imageData, { base64: true });
+        }
+
+        // Generate ZIP file
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+
+        // Download ZIP file
+        const zipName = `${selectedFile.name.replace(
+          /\.pdf$/i,
+          ''
+        )}_images.zip`;
+        saveAs(zipBlob, zipName);
+      }
+
+      // Reset the converter
+      function resetConverter() {
+        selectedFile = null;
+        convertedImages = [];
+        fileInput.value = '';
+
+        // Hide sections
+        fileInfo.classList.add('hidden');
+        progressSection.classList.add('hidden');
+        resultsSection.classList.add('hidden');
+        tryAgainContainer.classList.add('hidden');
+
+        // Reset progress
+        progressBar.style.width = '0%';
+        progressText.textContent = '0%';
+
+        // Show drop zone
+        dropZone.classList.remove('hidden');
+      }
+
+      // Mobile menu toggle
+      const menuToggle = document.getElementById('menu-toggle');
+      const mobileMenu = document.getElementById('mobile-menu');
+      if (menuToggle && mobileMenu) {
+        menuToggle.addEventListener('click', () => {
+          mobileMenu.classList.toggle('hidden');
+        });
+        // Optional: Hide menu when a link is clicked
+        mobileMenu.querySelectorAll('a').forEach((link) => {
+          link.addEventListener('click', () =>
+            mobileMenu.classList.add('hidden')
+          );
+        });
+      }
+
+      // --- Improved Accessibility and Focus for Upload Area ---
+      dropZone.addEventListener('focus', () => {
+        dropZone.classList.add('ring-2', 'ring-red-400');
+      });
+      dropZone.addEventListener('blur', () => {
+        dropZone.classList.remove('ring-2', 'ring-red-400');
+      });
+      dropZone.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          fileInput.value = '';
+          fileInput.click();
+        }
+      });
+      // Prevent label click from bubbling to drop zone
+      selectFileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    </script>
+  </body>
+</html>

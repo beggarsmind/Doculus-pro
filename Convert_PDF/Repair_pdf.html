@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Repair PDF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+      body {
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+        transition: all 0.3s ease;
+      }
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #4338ca 0%, #2563eb 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+      }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <!-- Header & Navigation (same as index.html) -->
+    <header class="header fixed top-0 left-0 w-full z-50 bg-white shadow">
+      <div class="container mx-auto px-4">
+        <div class="flex items-center justify-between h-[70px]">
+          <a href="../index.html" class="flex items-center">
+            <img
+              src="../images/D3.png"
+              alt="Doculus Pro Logo"
+              class="w-12 h-12 object-contain"
+            />
+            <span class="ml-2 text-xl font-bold text-gray-800"
+              >Doculus Pro</span
+            >
+          </a>
+          <nav class="hidden md:flex items-center space-x-6">
+            <a
+              href="../index.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Home</a
+            >
+            <a
+              href="../Merge_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Merge PDF</a
+            >
+            <a
+              href="../Split_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Split PDF</a
+            >
+            <a
+              href="../Compress_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Compress PDF</a
+            >
+            <a href="../all_pdf.html" class="nav-link text-red-600 font-bold"
+              >All PDF Tools</a
+            >
+          </nav>
+          <!-- Mobile Menu Button -->
+          <div class="md:hidden">
+            <button
+              id="menu-toggle"
+              class="focus:outline-none"
+              aria-label="Toggle menu"
+            >
+              <div class="hamburger">
+                <div class="w-6 h-0.5 bg-gray-700 mb-1.5"></div>
+                <div class="w-6 h-0.5 bg-gray-700 mb-1.5"></div>
+                <div class="w-6 h-0.5 bg-gray-700"></div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <!-- Mobile Menu -->
+    <div
+      id="mobile-menu"
+      class="mobile-menu fixed top-[70px] left-0 w-full h-[calc(100vh-70px)] bg-white z-40 md:hidden hidden"
+    >
+      <div class="p-4">
+        <nav class="space-y-1">
+          <a
+            href="../Merge_PDF.html"
+            class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+            >Merge PDF</a
+          >
+          <a
+            href="../Split_PDF.html"
+            class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+            >Split PDF</a
+          >
+          <a
+            href="../Compress_PDF.html"
+            class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+            >Compress PDF</a
+          >
+          <a
+            href="../all_pdf.html"
+            class="block py-3 px-4 text-red-600 font-bold rounded-md"
+            >All PDF Tools</a
+          >
+          <!-- Mobile Convert PDF Dropdown -->
+        </nav>
+      </div>
+    </div>
+
+    <!-- Repair PDF Tool Page -->
+    <main class="container mx-auto px-4 pt-20 pb-12">
+      <div class="max-w-3xl mx-auto">
+        <div class="flex items-center mb-6">
+          <i class="fas fa-wrench text-yellow-500 text-2xl mr-3"></i>
+          <h2 class="text-2xl font-bold text-gray-800">Repair PDF</h2>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+          <!-- Upload Area -->
+          <div
+            id="repair-pdf-drop-zone"
+            class="border-2 border-dashed border-yellow-400 rounded-lg p-8 text-center mb-6 cursor-pointer transition"
+            tabindex="0"
+          >
+            <i class="fas fa-file-pdf text-yellow-500 text-4xl mb-4"></i>
+            <h3 class="text-xl font-semibold mb-2">Upload Damaged PDF File</h3>
+            <p class="text-gray-600 mb-4">
+              Drag and drop a PDF file here or click to browse
+            </p>
+            <label
+              class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-6 rounded-lg transition-colors cursor-pointer inline-block"
+              tabindex="0"
+            >
+              Select PDF
+              <input
+                id="repair-pdf-file-input"
+                type="file"
+                accept="application/pdf"
+                class="hidden"
+              />
+            </label>
+            <div id="repair-pdf-preview" class="mt-6 text-gray-700"></div>
+          </div>
+          <!-- Repair Button & Download -->
+          <div
+            class="flex flex-col md:flex-row justify-center items-center gap-4 text-center"
+          >
+            <button
+              id="repair-pdf-btn"
+              class="btn-primary py-3 px-8 rounded-lg text-white font-medium w-full md:w-auto"
+              disabled
+            >
+              Repair PDF
+            </button>
+            <a
+              id="repair-pdf-download-link"
+              class="inline-block bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-8 rounded-lg transition hidden w-full md:w-auto"
+              download="repaired.pdf"
+              href="#"
+            >
+              Download PDF
+            </a>
+            <button
+              id="repair-pdf-try-again-btn"
+              class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-medium py-3 px-8 rounded-lg transition hidden w-full md:w-auto"
+            >
+              Repair Another PDF
+            </button>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h3 class="text-xl font-semibold mb-4 flex items-center">
+            <i class="fas fa-wrench text-yellow-500 mr-3"></i>
+            What is Repair PDF?
+          </h3>
+          <p class="text-gray-700 mb-4">
+            <strong>Repair PDF</strong> is a tool that attempts to recover and
+            rebuild damaged or corrupted PDF files. It can help you open and use
+            PDF documents that may not display correctly or are unreadable due
+            to file corruption.
+          </p>
+          <h3 class="text-xl font-semibold mb-4">How to Repair a PDF File</h3>
+          <ol class="space-y-3 text-gray-700">
+            <li class="flex">
+              <span
+                class="bg-yellow-100 text-yellow-600 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0"
+                >1</span
+              >
+              <span
+                >Upload your damaged PDF file by clicking the "Select PDF"
+                button</span
+              >
+            </li>
+            <li class="flex">
+              <span
+                class="bg-yellow-100 text-yellow-600 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0"
+                >2</span
+              >
+              <span>Click "Repair PDF" to attempt to recover the file</span>
+            </li>
+            <li class="flex">
+              <span
+                class="bg-yellow-100 text-yellow-600 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0"
+                >3</span
+              >
+              <span>Download your repaired PDF file</span>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </main>
+    <script>
+      // Mobile menu toggle
+      const menuToggle = document.getElementById('menu-toggle');
+      const mobileMenu = document.getElementById('mobile-menu');
+      if (menuToggle && mobileMenu) {
+        menuToggle.addEventListener('click', () => {
+          mobileMenu.classList.toggle('hidden');
+        });
+        mobileMenu.querySelectorAll('a').forEach((link) => {
+          link.addEventListener('click', () =>
+            mobileMenu.classList.add('hidden')
+          );
+        });
+      }
+
+      // Repair PDF logic (basic: try to re-save PDF using pdf-lib)
+      const dropZone = document.getElementById('repair-pdf-drop-zone');
+      const fileInput = document.getElementById('repair-pdf-file-input');
+      const preview = document.getElementById('repair-pdf-preview');
+      const repairBtn = document.getElementById('repair-pdf-btn');
+      const downloadLink = document.getElementById('repair-pdf-download-link');
+      const tryAgainBtn = document.getElementById('repair-pdf-try-again-btn');
+      let selectedFile = null;
+      let pdfDoc = null;
+
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('ring-2', 'ring-yellow-400');
+      });
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('ring-2', 'ring-yellow-400');
+      });
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('ring-2', 'ring-yellow-400');
+        handleFile(e.dataTransfer.files[0]);
+      });
+      dropZone.addEventListener('click', () => {
+        fileInput.value = '';
+        fileInput.click();
+      });
+      dropZone.querySelector('label').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          fileInput.value = '';
+          fileInput.click();
+        }
+      });
+      dropZone.querySelector('label').addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+
+      fileInput.addEventListener('change', (e) => {
+        handleFile(e.target.files[0]);
+      });
+
+      function handleFile(file) {
+        if (!file || !file.name.match(/\.pdf$/i)) {
+          preview.textContent = 'Please select a valid PDF file.';
+          repairBtn.disabled = true;
+          return;
+        }
+        selectedFile = file;
+        preview.textContent = `Selected: ${file.name}`;
+        repairBtn.disabled = false;
+        downloadLink.classList.add('hidden');
+        tryAgainBtn.classList.add('hidden');
+      }
+
+      repairBtn.addEventListener('click', async () => {
+        if (!selectedFile) return;
+        repairBtn.disabled = true;
+        downloadLink.classList.add('hidden');
+        tryAgainBtn.classList.add('hidden');
+        try {
+          const arrayBuffer = await selectedFile.arrayBuffer();
+          pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer, {
+            ignoreEncryption: true,
+          });
+          // Attempt to re-save the PDF (this can fix some minor corruptions)
+          const pdfBytes = await pdfDoc.save();
+          const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+          const url = URL.createObjectURL(blob);
+          downloadLink.href = url;
+          downloadLink.download = selectedFile.name.replace(
+            /\.pdf$/i,
+            '-repaired.pdf'
+          );
+          downloadLink.classList.remove('hidden');
+          tryAgainBtn.classList.remove('hidden');
+          preview.textContent = 'Repair completed. Download your PDF below.';
+        } catch (err) {
+          preview.textContent =
+            'Sorry, this PDF could not be repaired. It may be too badly damaged.';
+          tryAgainBtn.classList.remove('hidden');
+        }
+        repairBtn.disabled = false;
+      });
+
+      tryAgainBtn.addEventListener('click', () => {
+        selectedFile = null;
+        preview.textContent = '';
+        repairBtn.disabled = true;
+        downloadLink.classList.add('hidden');
+        tryAgainBtn.classList.add('hidden');
+      });
+    </script>
+  </body>
+</html>
