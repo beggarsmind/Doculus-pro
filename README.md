@@ -1,7 +1,5 @@
 # Doculus-pro
 
-# 📄 Doculus Pro
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/beggarsmind/Doculus-pro?style=social)](https://github.com/beggarsmind/Doculus-pro/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/beggarsmind/Doculus-pro?style=social)](https://github.com/beggarsmind/Doculus-pro/network)
@@ -32,11 +30,6 @@ Doculus-pro/
 ├── Convert_From_PDF/ ← PDF → Word/Excel/Image tools
 │ 
 
-yaml
-Copy
-Edit
-
----
 
 ## ⚙️ Tech Stack
 
@@ -110,29 +103,3 @@ Contributing
 Contributions welcome! Feel free to open issues or submit PRs to improve tools or UI.
 
 Thank you for supporting Doculus Pro 🙏
-yaml
-Copy
-Edit
-
----
-
-**Highlights of this version:**
-- **Badges** for license, stars, forks, issues give instant appeal.
-- Clear **features section** with icons.
-- Well-presented **project structure** in code block.
-- Tech stack table.
-- Usage guide steps.
-- Personalized **why choose** and **future ideas** sections.
-- **Call-to-action & contributing** info encourages engagement.
-
----
-
-Would you like me to help embed this directly into your repo or generate matching `/docs/index.html` for a GitHub Pages site?
-
-
-
-
-
-
-
-Ask ChatGPT
