@@ -13,9 +13,9 @@ Merge multiple PDFs
 
 Split PDF files
 
-Convert PDFs to Word, Excel, or Image
+Convert PDFs to Word, Image
 
-Convert Word, Excel, and Image files to PDF
+Convert Word, Image files to PDF
 
 Everything runs client-side, ensuring your documents remain secure and private.
 
