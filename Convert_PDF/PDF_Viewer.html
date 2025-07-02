@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doculus Pro | PDF Viewer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: '#f0f9ff',
+                100: '#e0f2fe',
+                200: '#bae6fd',
+                300: '#7dd3fc',
+                400: '#38bdf8',
+                500: '#0ea5e9',
+                600: '#0284c7',
+                700: '#0369a1',
+                800: '#075985',
+                900: '#0c4a6e',
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .highlight {
+        background-color: rgba(255, 255, 0, 0.4);
+        position: absolute;
+        z-index: 20;
+      }
+
+      .note {
+        position: absolute;
+        background-color: #fef08a;
+        border: 1px solid #fbbf24;
+        padding: 8px;
+        border-radius: 4px;
+        max-width: 200px;
+        z-index: 30;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .note-marker {
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        background-color: #fbbf24;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 25;
+      }
+
+      .page-thumbnail {
+        transition: all 0.2s;
+      }
+
+      .page-thumbnail.active {
+        border: 2px solid #0ea5e9;
+        transform: scale(1.05);
+      }
+
+      /* Touch support */
+      @media (pointer: coarse) {
+        .control-button {
+          min-height: 44px;
+          min-width: 44px;
+        }
+      }
+
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+
+      .dark ::-webkit-scrollbar-track {
+        background: #374151;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+
+      .dark ::-webkit-scrollbar-thumb {
+        background: #4b5563;
+      }
+
+      .dark ::-webkit-scrollbar-thumb:hover {
+        background: #6b7280;
+      }
+
+      #pdfViewer {
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* Smoother Note Panel */
+      #noteSidePanel {
+        transition: transform 0.3s, opacity 0.3s;
+        transform: translateX(100%);
+        opacity: 0;
+        pointer-events: none;
+      }
+      #noteSidePanel.open {
+        transform: translateX(0);
+        opacity: 1;
+        pointer-events: auto;
+      }
+      @media (max-width: 640px) {
+        #noteSidePanel {
+          top: auto;
+          bottom: 0;
+          right: 0;
+          left: 0;
+          width: 100vw;
+          max-width: 100vw;
+          height: 40vh;
+          border-left: none;
+          border-top: 1px solid #e5e7eb;
+          border-radius: 1rem 1rem 0 0;
+          transform: translateY(100%);
+        }
+        #noteSidePanel.open {
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen flex flex-col"
+  >
+    <!-- Header -->
+    <header class="bg-white dark:bg-gray-800 shadow-md py-3 px-4 sm:px-6">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+        <h1
+          class="text-2xl sm:text-3xl md:text-5xl font-extrabold text-indigo-700 mb-3 sm:mb-4 tracking-tight drop-shadow flex flex-row items-center flex-wrap"
+        >
+          <a
+            href="../index.html"
+            class="nav-link text-gray-700 hover:text-red-500 font-medium flex items-center"
+          >
+            <img
+              src="../images/D3.png"
+              alt="Doculus Pro Logo"
+              class="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 object-contain inline-block mr-2"
+            />
+            <span
+              class="text-base sm:text-2xl md:text-4xl font-bold text-gray-800"
+              >Doculus Pro</span
+            >
+          </a>
+          <span
+            class="ml-3 text-l sm:text-xl md:text-3xl font-semibold text-primary-600 dark:text-primary-400"
+            >| PDF Viewer</span
+          >
+        </h1>
+
+        <div class="flex items-center gap-3">
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="darkModeToggle" class="sr-only peer" />
+            <div
+              class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"
+            ></div>
+            <span class="ms-3 text-sm font-medium">Dark Mode</span>
+          </label>
+
+          <label
+            for="pdfUpload"
+            class="control-button cursor-pointer bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            Upload PDF
+          </label>
+          <input type="file" id="pdfUpload" accept=".pdf" class="hidden" />
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex flex-1 flex-col md:flex-row overflow-hidden">
+      <!-- Sidebar with thumbnails -->
+      <aside
+        id="thumbnailSidebar"
+        class="w-full md:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto hidden md:block"
+      >
+        <div
+          class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center"
+        >
+          <h2 class="font-semibold">Page Thumbnails</h2>
+          <button
+            id="closeSidebar"
+            class="md:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+        <div id="thumbnailContainer" class="p-2 grid grid-cols-1 gap-3"></div>
+      </aside>
+
+      <!-- PDF Viewer Area -->
+      <div class="md:flex-1 min-w-0 flex flex-col overflow-hidden">
+        <!-- Toolbar -->
+        <div
+          class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-2 flex flex-wrap gap-2 items-center justify-between"
+        >
+          <div class="flex items-center gap-2">
+            <button
+              id="toggleSidebar"
+              class="control-button md:hidden bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 p-2 rounded-lg"
+              title="Toggle sidebar"
+              aria-label="Toggle sidebar"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
+
+            <div
+              class="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden"
+            >
+              <button
+                id="prevPage"
+                class="control-button bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 p-2 border-r border-gray-300 dark:border-gray-600"
+                title="Previous page"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+              <span id="pageInfo" class="px-3 py-1">0 / 0</span>
+              <button
+                id="nextPage"
+                class="control-button bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 p-2 border-l border-gray-300 dark:border-gray-600"
+                title="Next page"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <div
+              class="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden"
+            >
+              <button
+                id="zoomOut"
+                class="control-button bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 p-2 border-r border-gray-300 dark:border-gray-600"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M20 12H4"
+                  />
+                </svg>
+              </button>
+              <span id="zoomLevel" class="px-3 py-1">100%</span>
+              <button
+                id="zoomIn"
+                class="control-button bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 p-2 border-l border-gray-300 dark:border-gray-600"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <div class="dropdown relative">
+              <button
+                id="annotateBtn"
+                class="control-button bg-primary-100 dark:bg-primary-900 hover:bg-primary-200 dark:hover:bg-primary-800 text-primary-800 dark:text-primary-200 font-medium py-2 px-3 rounded-lg flex items-center gap-1"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                  />
+                </svg>
+                Annotate
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+              <div
+                id="annotateDropdown"
+                class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-50 border border-gray-200 dark:border-gray-700"
+              >
+                <button
+                  id="highlightBtn"
+                  class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-yellow-500"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zm7-10a1 1 0 01.707.293l.707.707L15 4.414l1.293-1.293a1 1 0 111.414 1.414l-1.293 1.293L18 7.414l1.293 1.293a1 1 0 01-1.414 1.414L16.586 9l-1.293 1.293-1.293-1.293a1 1 0 010-1.414l1.293-1.293-1.293-1.293L12.707 3.7a1 1 0 010-1.414z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  Highlight Text
+                </button>
+                <button
+                  id="addNoteBtn"
+                  class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-amber-500"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  Add Note
+                </button>
+              </div>
+            </div>
+
+            <button
+              id="downloadPdf"
+              class="control-button bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-3 rounded-lg flex items-center gap-1"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
+              </svg>
+              Download
+            </button>
+          </div>
+        </div>
+
+        <!-- PDF Canvas Container -->
+        <div
+          id="pdfContainer"
+          class="flex-1 overflow-auto bg-gray-200 dark:bg-gray-800 flex justify-center"
+        >
+          <div id="pdfViewer" class="relative my-4"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Modals -->
+    <div
+      id="noteModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+    >
+      <div
+        class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4"
+      >
+        <h3 class="text-lg font-semibold mb-4">Add Note</h3>
+        <textarea
+          id="noteText"
+          class="w-full h-32 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 mb-4"
+          placeholder="Enter your note here..."
+        ></textarea>
+        <div class="flex justify-end gap-2">
+          <button
+            id="cancelNote"
+            class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg"
+          >
+            Cancel
+          </button>
+          <button
+            id="saveNote"
+            class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg"
+          >
+            Save Note
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="loadingModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+    >
+      <div
+        class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 flex flex-col items-center"
+      >
+        <div
+          class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600 mb-4"
+        ></div>
+        <p class="text-lg">Loading PDF...</p>
+      </div>
+    </div>
+
+    <div
+      id="noFileModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+    >
+      <div
+        class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md mx-4 text-center"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-16 w-16 mx-auto text-primary-600 mb-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
+        </svg>
+        <h3 class="text-xl font-bold mb-2">No PDF Selected</h3>
+        <p class="mb-4 text-gray-600 dark:text-gray-400">
+          Please upload a PDF file to view it in the viewer.
+        </p>
+        <label
+          for="pdfUploadModal"
+          class="cursor-pointer bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors inline-block"
+        >
+          Upload PDF
+        </label>
+        <input type="file" id="pdfUploadModal" accept=".pdf" class="hidden" />
+      </div>
+    </div>
+
+    <!-- Note Side Panel -->
+    <div
+      id="noteSidePanel"
+      class="fixed top-[70px] right-0 w-full max-w-xs h-[calc(100vh-70px)] bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-lg z-50 p-6 hidden flex-col"
+    >
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">Note</h3>
+        <button
+          id="closeNotePanel"
+          class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 text-2xl font-bold"
+        >
+          &times;
+        </button>
+      </div>
+      <div
+        id="notePanelText"
+        class="text-gray-800 dark:text-gray-100 whitespace-pre-line break-words"
+      ></div>
+    </div>
+
+    <script>
+      // Initialize PDF.js
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+
+      // App state
+      const state = {
+        pdfDoc: null,
+        currentPage: 1,
+        zoom: 1.0,
+        annotations: {
+          highlights: [],
+          notes: [],
+        },
+        mode: 'view', // 'view', 'highlight', 'note'
+        selection: null,
+        notePosition: null,
+      };
+
+      // DOM Elements
+      const pdfUpload = document.getElementById('pdfUpload');
+      const pdfUploadModal = document.getElementById('pdfUploadModal');
+      const pdfViewer = document.getElementById('pdfViewer');
+      const pdfContainer = document.getElementById('pdfContainer');
+      const pageInfo = document.getElementById('pageInfo');
+      const prevPageBtn = document.getElementById('prevPage');
+      const nextPageBtn = document.getElementById('nextPage');
+      const zoomInBtn = document.getElementById('zoomIn');
+      const zoomOutBtn = document.getElementById('zoomOut');
+      const zoomLevelEl = document.getElementById('zoomLevel');
+      const downloadBtn = document.getElementById('downloadPdf');
+      const annotateBtn = document.getElementById('annotateBtn');
+      const annotateDropdown = document.getElementById('annotateDropdown');
+      const highlightBtn = document.getElementById('highlightBtn');
+      const addNoteBtn = document.getElementById('addNoteBtn');
+      const thumbnailContainer = document.getElementById('thumbnailContainer');
+      const thumbnailSidebar = document.getElementById('thumbnailSidebar');
+      const toggleSidebarBtn = document.getElementById('toggleSidebar');
+      const closeSidebarBtn = document.getElementById('closeSidebar');
+      const darkModeToggle = document.getElementById('darkModeToggle');
+      const noteModal = document.getElementById('noteModal');
+      const noteText = document.getElementById('noteText');
+      const saveNoteBtn = document.getElementById('saveNote');
+      const cancelNoteBtn = document.getElementById('cancelNote');
+      const loadingModal = document.getElementById('loadingModal');
+      const noFileModal = document.getElementById('noFileModal');
+
+      // Initialize dark mode
+      if (
+        localStorage.getItem('darkMode') === 'true' ||
+        (window.matchMedia &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches &&
+          localStorage.getItem('darkMode') !== 'false')
+      ) {
+        document.documentElement.classList.add('dark');
+        darkModeToggle.checked = true;
+      }
+
+      // Event Listeners
+      darkModeToggle.addEventListener('change', () => {
+        if (darkModeToggle.checked) {
+          document.documentElement.classList.add('dark');
+          localStorage.setItem('darkMode', 'true');
+        } else {
+          document.documentElement.classList.remove('dark');
+          localStorage.setItem('darkMode', 'false');
+        }
+      });
+
+      pdfUpload.addEventListener('change', handleFileSelect);
+      pdfUploadModal.addEventListener('change', handleFileSelect);
+      prevPageBtn.addEventListener('click', () => {
+        if (state.currentPage > 1) {
+          state.currentPage--;
+          renderPage(state.currentPage);
+          updateThumbnailHighlight();
+        }
+      });
+
+      nextPageBtn.addEventListener('click', () => {
+        if (state.pdfDoc && state.currentPage < state.pdfDoc.numPages) {
+          state.currentPage++;
+          renderPage(state.currentPage);
+          updateThumbnailHighlight();
+        }
+      });
+
+      zoomInBtn.addEventListener('click', () => {
+        if (state.zoom < 3) {
+          state.zoom += 0.25;
+          renderPage(state.currentPage);
+          zoomLevelEl.textContent = `${Math.round(state.zoom * 100)}%`;
+        }
+      });
+
+      zoomOutBtn.addEventListener('click', () => {
+        if (state.zoom > 0.5) {
+          state.zoom -= 0.25;
+          renderPage(state.currentPage);
+          zoomLevelEl.textContent = `${Math.round(state.zoom * 100)}%`;
+        }
+      });
+
+      downloadBtn.addEventListener('click', () => {
+        if (state.pdfDoc) {
+          // For simplicity, we're just downloading the original PDF
+          // In a real app, you'd want to save annotations too
+          const url = URL.createObjectURL(pdfUpload.files[0]);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = pdfUpload.files[0].name;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
+      });
+
+      annotateBtn.addEventListener('click', () => {
+        annotateDropdown.classList.toggle('hidden');
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (
+          !annotateBtn.contains(e.target) &&
+          !annotateDropdown.contains(e.target)
+        ) {
+          annotateDropdown.classList.add('hidden');
+        }
+      });
+
+      highlightBtn.addEventListener('click', () => {
+        state.mode = state.mode === 'highlight' ? 'view' : 'highlight';
+        annotateDropdown.classList.add('hidden');
+        updateUIForMode();
+      });
+
+      addNoteBtn.addEventListener('click', () => {
+        state.mode = state.mode === 'note' ? 'view' : 'note';
+        annotateDropdown.classList.add('hidden');
+        updateUIForMode();
+      });
+
+      toggleSidebarBtn.addEventListener('click', () => {
+        thumbnailSidebar.classList.toggle('hidden');
+      });
+
+      closeSidebarBtn.addEventListener('click', () => {
+        thumbnailSidebar.classList.add('hidden');
+      });
+
+      saveNoteBtn.addEventListener('click', () => {
+        if (state.notePosition && noteText.value.trim()) {
+          const note = {
+            page: state.currentPage,
+            x: state.notePosition.x,
+            y: state.notePosition.y,
+            text: noteText.value.trim(),
+          };
+
+          state.annotations.notes.push(note);
+          renderNote(note);
+          noteModal.classList.add('hidden');
+          noteText.value = '';
+          state.notePosition = null;
+        }
+      });
+
+      cancelNoteBtn.addEventListener('click', () => {
+        noteModal.classList.add('hidden');
+        noteText.value = '';
+        state.notePosition = null;
+      });
+
+      // Touch support for mobile
+      let touchStartX = 0;
+      let touchEndX = 0;
+
+      pdfContainer.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+      });
+
+      pdfContainer.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+      });
+
+      function handleSwipe() {
+        const swipeThreshold = 50;
+        if (touchEndX < touchStartX - swipeThreshold) {
+          // Swipe left - next page
+          if (state.pdfDoc && state.currentPage < state.pdfDoc.numPages) {
+            state.currentPage++;
+            renderPage(state.currentPage);
+            updateThumbnailHighlight();
+          }
+        }
+
+        if (touchEndX > touchStartX + swipeThreshold) {
+          // Swipe right - previous page
+          if (state.currentPage > 1) {
+            state.currentPage--;
+            renderPage(state.currentPage);
+            updateThumbnailHighlight();
+          }
+        }
+      }
+
+      // Handle file selection
+      function handleFileSelect(e) {
+        const file = e.target.files[0];
+        if (file && file.type === 'application/pdf') {
+          loadingModal.classList.remove('hidden');
+          const fileReader = new FileReader();
+
+          fileReader.onload = function (event) {
+            const typedArray = new Uint8Array(event.target.result);
+            loadPdfFromData(typedArray);
+          };
+
+          fileReader.readAsArrayBuffer(file);
+        }
+      }
+
+      // Load PDF from data
+      async function loadPdfFromData(data) {
+        try {
+          // Reset state
+          state.pdfDoc = null;
+          state.currentPage = 1;
+          state.zoom = 1.0;
+          state.annotations = { highlights: [], notes: [] };
+          state.mode = 'view';
+          state.searchResults = [];
+          state.currentSearchIndex = -1;
+
+          // Clear viewer
+          pdfViewer.innerHTML = '';
+          thumbnailContainer.innerHTML = '';
+
+          // Load document
+          const loadingTask = pdfjsLib.getDocument({ data });
+          state.pdfDoc = await loadingTask.promise;
+
+          // Hide the no file modal after successful load
+          noFileModal.classList.add('hidden');
+
+          // Update UI
+          pageInfo.textContent = `${state.currentPage} / ${state.pdfDoc.numPages}`;
+          zoomLevelEl.textContent = '100%';
+
+          // Generate thumbnails
+          generateThumbnails();
+
+          // Render first page
+          renderPage(state.currentPage);
+
+          loadingModal.classList.add('hidden');
+        } catch (error) {
+          console.error('Error loading PDF:', error);
+          loadingModal.classList.add('hidden');
+          alert('Error loading PDF. Please try another file.');
+        }
+      }
+
+      // Generate thumbnails for all pages
+      async function generateThumbnails() {
+        thumbnailContainer.innerHTML = '';
+
+        for (let i = 1; i <= state.pdfDoc.numPages; i++) {
+          const page = await state.pdfDoc.getPage(i);
+          const viewport = page.getViewport({ scale: 0.2 });
+
+          const thumbnailDiv = document.createElement('div');
+          thumbnailDiv.className =
+            'page-thumbnail cursor-pointer bg-white dark:bg-gray-700 rounded-lg shadow p-1 mb-2';
+          thumbnailDiv.dataset.page = i;
+
+          const canvas = document.createElement('canvas');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+
+          const context = canvas.getContext('2d');
+          const renderContext = {
+            canvasContext: context,
+            viewport: viewport,
+          };
+
+          await page.render(renderContext).promise;
+
+          const pageLabel = document.createElement('div');
+          pageLabel.className = 'text-center text-xs mt-1';
+          pageLabel.textContent = `Page ${i}`;
+
+          thumbnailDiv.appendChild(canvas);
+          thumbnailDiv.appendChild(pageLabel);
+          thumbnailContainer.appendChild(thumbnailDiv);
+
+          thumbnailDiv.addEventListener('click', () => {
+            state.currentPage = i;
+            renderPage(state.currentPage);
+            updateThumbnailHighlight();
+          });
+        }
+
+        updateThumbnailHighlight();
+      }
+
+      // Update thumbnail highlight
+      function updateThumbnailHighlight() {
+        const thumbnails =
+          thumbnailContainer.querySelectorAll('.page-thumbnail');
+        thumbnails.forEach((thumb) => {
+          if (parseInt(thumb.dataset.page) === state.currentPage) {
+            thumb.classList.add('active');
+            // Scroll to the thumbnail
+            thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          } else {
+            thumb.classList.remove('active');
+          }
+        });
+      }
+
+      // Render PDF page
+      async function renderPage(pageNum) {
+        if (!state.pdfDoc) return;
+
+        // Clear previous content
+        pdfViewer.innerHTML = '';
+
+        // Get page
+        const page = await state.pdfDoc.getPage(pageNum);
+        const viewport = page.getViewport({ scale: state.zoom });
+
+        // Create canvas
+        const canvas = document.createElement('canvas');
+        canvas.className = 'shadow-lg';
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        pdfViewer.appendChild(canvas);
+
+        // Ensure pdfViewer is relative for text layer positioning
+        pdfViewer.style.position = 'relative';
+
+        // Render PDF page
+        const context = canvas.getContext('2d');
+        const renderContext = {
+          canvasContext: context,
+          viewport: viewport,
+        };
+
+        await page.render(renderContext).promise;
+
+        // Removed text layer for selection and search
+        // No selectable or visible text will appear over the PDF canvas
+
+        // Update page info
+        pageInfo.textContent = `${pageNum} / ${state.pdfDoc.numPages}`;
+
+        // Add click handler for annotations
+        canvas.addEventListener('click', handleCanvasClick);
+
+        // Render annotations for this page
+        renderAnnotations(pageNum);
+      }
+
+      // Handle canvas click for adding notes
+      function handleCanvasClick(e) {
+        if (state.mode !== 'note') return;
+
+        const rect = e.target.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        state.notePosition = { x, y };
+        noteModal.classList.remove('hidden');
+      }
+
+      // Render all annotations for a page
+      function renderAnnotations(pageNum) {
+        // Render highlights
+        state.annotations.highlights.forEach((highlight) => {
+          if (highlight.page === pageNum) {
+            renderHighlight(highlight);
+          }
+        });
+
+        // Render notes
+        state.annotations.notes.forEach((note) => {
+          if (note.page === pageNum) {
+            renderNote(note);
+          }
+        });
+      }
+
+      // Render a highlight annotation
+      function renderHighlight(highlight) {
+        const highlightEl = document.createElement('div');
+        highlightEl.className = 'highlight';
+        highlightEl.style.left = `${highlight.x}px`;
+        highlightEl.style.top = `${highlight.y}px`;
+        highlightEl.style.width = `${highlight.width}px`;
+        highlightEl.style.height = `${highlight.height}px`;
+        highlightEl.title = highlight.text;
+
+        pdfViewer.appendChild(highlightEl);
+      }
+
+      // Show note in side panel (with smooth slide-in)
+      function showNotePanel(noteText) {
+        const notePanel = document.getElementById('noteSidePanel');
+        const notePanelText = document.getElementById('notePanelText');
+        notePanelText.textContent = noteText || 'No note selected.';
+        notePanel.classList.add('open');
+        notePanel.classList.remove('hidden');
+      }
+      // Hide note panel
+      function hideNotePanel() {
+        const notePanel = document.getElementById('noteSidePanel');
+        notePanel.classList.remove('open');
+        setTimeout(() => notePanel.classList.add('hidden'), 300);
+      }
+
+      // Render a note annotation
+      function renderNote(note) {
+        const noteMarker = document.createElement('div');
+        noteMarker.className = 'note-marker';
+        noteMarker.style.left = `${note.x}px`;
+        noteMarker.style.top = `${note.y}px`;
+        noteMarker.textContent = 'N';
+        noteMarker.title = 'Click to view note';
+        noteMarker.tabIndex = 0;
+        noteMarker.setAttribute('aria-label', 'Show note');
+        noteMarker.addEventListener('click', () => {
+          showNotePanel(note.text);
+        });
+        noteMarker.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') showNotePanel(note.text);
+        });
+        pdfViewer.appendChild(noteMarker);
+      }
+
+      // Update close button event
+      const closeNotePanelBtn = document.getElementById('closeNotePanel');
+      closeNotePanelBtn.title = 'Close note panel';
+      closeNotePanelBtn.setAttribute('aria-label', 'Close note panel');
+      closeNotePanelBtn.addEventListener('click', hideNotePanel);
+
+      // Close note side panel
+      document
+        .getElementById('closeNotePanel')
+        .addEventListener('click', () => {
+          document.getElementById('noteSidePanel').classList.add('hidden');
+        });
+
+      // Update UI based on current mode
+      function updateUIForMode() {
+        document.body.style.cursor =
+          state.mode === 'view'
+            ? 'default'
+            : state.mode === 'highlight'
+            ? 'text'
+            : 'crosshair';
+
+        // Update button states
+        highlightBtn.classList.toggle(
+          'bg-yellow-100',
+          state.mode === 'highlight'
+        );
+        addNoteBtn.classList.toggle('bg-yellow-100', state.mode === 'note');
+      }
+
+      // Show no file modal on load
+      window.addEventListener('DOMContentLoaded', () => {
+        noFileModal.classList.remove('hidden');
+      });
+
+      // Add keyboard navigation for page turning
+      window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')
+          return;
+        if (e.key === 'ArrowLeft') prevPageBtn.click();
+        if (e.key === 'ArrowRight') nextPageBtn.click();
+      });
+
+      // Add tooltips to toolbar buttons
+      prevPageBtn.title = 'Previous page';
+      nextPageBtn.title = 'Next page';
+      zoomInBtn.title = 'Zoom in';
+      zoomOutBtn.title = 'Zoom out';
+      downloadBtn.title = 'Download PDF';
+      annotateBtn.title = 'Annotation options';
+      highlightBtn.title = 'Highlight text';
+      addNoteBtn.title = 'Add note';
+      toggleSidebarBtn.title = 'Show/hide thumbnails';
+    </script>
+    <script>
+      (function () {
+        function c() {
+          var b = a.contentDocument || a.contentWindow.document;
+          if (b) {
+            var d = b.createElement('script');
+            d.innerHTML =
+              "window.__CF$cv$params={r:'957e5dd8f0203bd4',t:'MTc1MTI5Mzg3OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+            b.getElementsByTagName('head')[0].appendChild(d);
+          }
+        }
+        if (document.body) {
+          var a = document.createElement('iframe');
+          a.height = 1;
+          a.width = 1;
+          a.style.position = 'absolute';
+          a.style.top = 0;
+          a.style.left = 0;
+          a.style.border = 'none';
+          a.style.visibility = 'hidden';
+          document.body.appendChild(a);
+          if ('loading' !== document.readyState) c();
+          else if (window.addEventListener)
+            document.addEventListener('DOMContentLoaded', c);
+          else {
+            var e = document.onreadystatechange || function () {};
+            document.onreadystatechange = function (b) {
+              e(b);
+              'loading' !== document.readyState &&
+                ((document.onreadystatechange = e), c());
+            };
+          }
+        }
+      })();
+    </script>
+  </body>
+</html>
