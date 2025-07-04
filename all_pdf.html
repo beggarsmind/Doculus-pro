@@ -19,6 +19,8 @@
       body {
         font-family: 'Poppins', sans-serif;
         background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+        max-width: 1800px;
+        margin: 0 auto;
       }
       .card {
         transition: all 0.3s ease;
@@ -55,14 +57,15 @@
       }
       .cookie-card {
         max-width: 320px;
-        padding: 1rem;
+        min-width: 0;
+        padding: 1.5rem;
         background-color: #fff;
-        border-radius: 10px;
+        border-radius: 16px;
         box-shadow: 20px 20px 30px rgba(0, 0, 0, 0.05);
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        min-height: 210px;
+        min-height: 240px;
       }
       .title {
         font-weight: 600;
@@ -246,7 +249,7 @@
     <!-- Main Content -->
     <div
       id="home"
-      class="page container mx-auto px-2 pt-24 sm:pt-32 pb-6 sm:pb-8 max-w-full sm:max-w-2xl"
+      class="page container mx-auto px-2 pt-24 sm:pt-32 pb-6 sm:pb-8 max-w-full sm:max-w-4xl"
     >
       <div class="text-center mb-6 sm:mb-8">
         <h2
@@ -263,202 +266,331 @@
           All your favorite PDF tools in one place. Tap a tool to get started!
         </p>
       </div>
-      <div class="flex flex-wrap gap-4 justify-center">
-        <!-- Tool Cards: Uiverse.io cookie-card style -->
-        <div class="cookie-card">
-          <span class="title flex items-center gap-2"
-            ><span class="bg-indigo-100 text-indigo-600 rounded-lg p-2"
-              ><i class="fas fa-object-group"></i></span
-            >Merge PDF</span
-          >
-          <p class="description">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 justify-center">
+        <!-- Tool Cards: Updated fancy style -->
+        <div
+          class="cookie-card max-w-md mx-auto bg-white shadow-lg rounded-2xl p-6 border border-indigo-200 transition-transform transform hover:scale-105 hover:shadow-indigo-300"
+        >
+          <span class="title flex items-center gap-3 mb-4">
+            <span
+              class="bg-indigo-100 text-indigo-600 rounded-full p-3 shadow-inner"
+            >
+              <i class="fas fa-object-group text-xl"></i>
+            </span>
+            <span class="text-2xl font-semibold text-gray-800">Merge PDF</span>
+          </span>
+          <p class="description text-gray-600 text-sm leading-relaxed mb-6">
             Combine multiple PDF files into one seamless document.
           </p>
-          <div class="actions justify-end">
-            <a href="Merge_PDF.html" class="accept">Go To Page</a>
+          <div class="actions flex justify-end">
+            <a
+              href="Merge_PDF.html"
+              class="accept bg-indigo-500 hover:bg-indigo-600 text-white font-medium px-5 py-2 rounded-lg shadow-md transition-all duration-300"
+              >Go To Page</a
+            >
           </div>
         </div>
-        <div class="cookie-card">
-          <span class="title flex items-center gap-2"
-            ><span class="bg-red-100 text-red-600 rounded-lg p-2"
-              ><i class="fas fa-cut"></i></span
-            >Split PDF</span
-          >
-          <p class="description">
+        <div
+          class="cookie-card max-w-md mx-auto bg-white shadow-lg rounded-2xl p-6 border border-red-200 transition-transform transform hover:scale-105 hover:shadow-red-300"
+        >
+          <span class="title flex items-center gap-3 mb-4">
+            <span class="bg-red-100 text-red-600 rounded-full p-3 shadow-inner">
+              <i class="fas fa-cut text-xl"></i>
+            </span>
+            <span class="text-2xl font-semibold text-gray-800">Split PDF</span>
+          </span>
+          <p class="description text-gray-600 text-sm leading-relaxed mb-6">
             Split a PDF into individual pages or custom page ranges.
           </p>
-          <div class="actions justify-end">
-            <a href="Split_PDF.html" class="accept">Go To Page</a>
+          <div class="actions flex justify-end">
+            <a
+              href="Split_PDF.html"
+              class="accept bg-red-500 hover:bg-red-600 text-white font-medium px-5 py-2 rounded-lg shadow-md transition-all duration-300"
+              >Go To Page</a
+            >
           </div>
         </div>
-        <div class="cookie-card">
-          <span class="title flex items-center gap-2"
-            ><span class="bg-green-100 text-green-600 rounded-lg p-2"
-              ><i class="fas fa-compress-arrows-alt"></i></span
-            >Compress PDF</span
-          >
-          <p class="description">
+        <div
+          class="cookie-card max-w-md mx-auto bg-white shadow-lg rounded-2xl p-6 border border-green-200 transition-transform transform hover:scale-105 hover:shadow-green-300"
+        >
+          <span class="title flex items-center gap-3 mb-4">
+            <span
+              class="bg-green-100 text-green-600 rounded-full p-3 shadow-inner"
+            >
+              <i class="fas fa-compress-arrows-alt text-xl"></i>
+            </span>
+            <span class="text-2xl font-semibold text-gray-800"
+              >Compress PDF</span
+            >
+          </span>
+          <p class="description text-gray-600 text-sm leading-relaxed mb-6">
             Reduce the file size of your PDF while maintaining quality.
           </p>
-          <div class="actions justify-end">
-            <a href="Compress_PDF.html" class="accept">Go To Page</a>
+          <div class="actions flex justify-end">
+            <a
+              href="Compress_PDF.html"
+              class="accept bg-green-500 hover:bg-green-600 text-white font-medium px-5 py-2 rounded-lg shadow-md transition-all duration-300"
+              >Go To Page</a
+            >
           </div>
         </div>
-        <div class="cookie-card">
-          <span class="title flex items-center gap-2"
-            ><span class="bg-blue-100 text-blue-600 rounded-lg p-2"
-              ><i class="fas fa-file-image"></i></span
-            >JPG to PDF</span
-          >
-          <p class="description">
-            Convert JPG images to a single PDF file easily.
+        <div
+          class="cookie-card max-w-md mx-auto bg-white shadow-lg rounded-2xl p-6 border border-blue-200 transition-transform transform hover:scale-105 hover:shadow-blue-300"
+        >
+          <span class="title flex items-center gap-3 mb-4">
+            <span
+              class="bg-blue-100 text-blue-600 rounded-full p-3 shadow-inner"
+            >
+              <i class="fas fa-file-image text-xl"></i>
+            </span>
+            <span class="text-2xl font-semibold text-gray-800">JPG to PDF</span>
+          </span>
+          <p class="description text-gray-600 text-sm leading-relaxed mb-6">
+            Convert JPG images to PDF format for easy sharing and printing.
           </p>
-          <div class="actions justify-end">
-            <a href="Convert_PDF/JPG_to_PDF.html" class="accept">Go To Page</a>
+          <div class="actions flex justify-end">
+            <a
+              href="Convert_PDF/JPG_to_PDF.html"
+              class="accept bg-blue-500 hover:bg-blue-600 text-white font-medium px-5 py-2 rounded-lg shadow-md transition-all duration-300"
+              >Go To Page</a
+            >
           </div>
         </div>
-        <div class="cookie-card">
-          <span class="title flex items-center gap-2"
-            ><span class="bg-purple-100 text-purple-600 rounded-lg p-2"
-              ><i class="fas fa-file-image"></i></span
-            >PDF to JPG</span
-          >
-          <p class="description">
+        <div
+          class="cookie-card max-w-md mx-auto bg-white shadow-lg rounded-2xl p-6 border border-purple-200 transition-transform transform hover:scale-105 hover:shadow-purple-300"
+        >
+          <span class="title flex items-center gap-3 mb-4">
+            <span
+              class="bg-purple-100 text-purple-600 rounded-full p-3 shadow-inner"
+            >
+              <i class="fas fa-file-image text-xl"></i>
+            </span>
+            <span class="text-2xl font-semibold text-gray-800">PDF to JPG</span>
+          </span>
+          <p class="description text-gray-600 text-sm leading-relaxed mb-6">
             Extract images from your PDF or convert pages to JPG format.
           </p>
-          <div class="actions justify-end">
-            <a href="Convert_PDF/PDF_to_JPG.html" class="accept">Go To Page</a>
+          <div class="actions flex justify-end">
+            <a
+              href="Convert_PDF/PDF_to_JPG.html"
+              class="accept bg-purple-500 hover:bg-purple-600 text-white font-medium px-5 py-2 rounded-lg shadow-md transition-all duration-300"
+              >Go To Page</a
+            >
           </div>
         </div>
-        <div class="cookie-card">
-          <span class="title flex items-center gap-2"
-            ><span class="bg-pink-100 text-pink-600 rounded-lg p-2"
-              ><i class="fas fa-trash-alt"></i></span
-            >Remove Pages</span
-          >
-          <p class="description">
+        <div
+          class="cookie-card max-w-md mx-auto bg-white shadow-lg rounded-2xl p-6 border border-pink-200 transition-transform transform hover:scale-105 hover:shadow-pink-300"
+        >
+          <span class="title flex items-center gap-3 mb-4">
+            <span
+              class="bg-pink-100 text-pink-600 rounded-full p-3 shadow-inner"
+            >
+              <i class="fas fa-trash-alt text-xl"></i>
+            </span>
+            <span class="text-2xl font-semibold text-gray-800"
+              >Remove Pages</span
+            >
+          </span>
+          <p class="description text-gray-600 text-sm leading-relaxed mb-6">
             Delete unwanted pages from your PDF document.
           </p>
-          <div class="actions justify-end">
-            <a href="Convert_PDF/Remove_PDF.html" class="accept">Go To Page</a>
+          <div class="actions flex justify-end">
+            <a
+              href="Convert_PDF/Remove_PDF.html"
+              class="accept bg-pink-500 hover:bg-pink-600 text-white font-medium px-5 py-2 rounded-lg shadow-md transition-all duration-300"
+              >Go To Page</a
+            >
           </div>
         </div>
-        <div class="cookie-card">
-          <span class="title flex items-center gap-2"
-            ><span class="bg-yellow-100 text-yellow-600 rounded-lg p-2"
-              ><i class="fas fa-copy"></i></span
-            >Extract Pages</span
-          >
-          <p class="description">
+        <div
+          class="cookie-card max-w-md mx-auto bg-white shadow-lg rounded-2xl p-6 border border-yellow-200 transition-transform transform hover:scale-105 hover:shadow-yellow-300"
+        >
+          <span class="title flex items-center gap-3 mb-4">
+            <span
+              class="bg-yellow-100 text-yellow-600 rounded-full p-3 shadow-inner"
+            >
+              <i class="fas fa-copy text-xl"></i>
+            </span>
+            <span class="text-2xl font-semibold text-gray-800"
+              >Extract Pages</span
+            >
+          </span>
+          <p class="description text-gray-600 text-sm leading-relaxed mb-6">
             Extract specific pages from your PDF into a new file.
           </p>
-          <div class="actions justify-end">
-            <a href="Convert_PDF/Extract_Pages.html" class="accept"
+          <div class="actions flex justify-end">
+            <a
+              href="Convert_PDF/Extract_Pages.html"
+              class="accept bg-yellow-500 hover:bg-yellow-600 text-white font-medium px-5 py-2 rounded-lg shadow-md transition-all duration-300"
               >Go To Page</a
             >
           </div>
         </div>
-        <div class="cookie-card">
-          <span class="title flex items-center gap-2"
-            ><span class="bg-teal-100 text-teal-600 rounded-lg p-2"
-              ><i class="fas fa-sort"></i></span
-            >Organize PDF</span
-          >
-          <p class="description">
-            Rearrange, rotate, or delete pages in your PDF.
+        <div
+          class="cookie-card max-w-md mx-auto bg-white shadow-lg rounded-2xl p-6 border border-teal-200 transition-transform transform hover:scale-105 hover:shadow-teal-300"
+        >
+          <span class="title flex items-center gap-3 mb-4">
+            <span
+              class="bg-teal-100 text-teal-600 rounded-full p-3 shadow-inner"
+            >
+              <i class="fas fa-sort text-xl"></i>
+            </span>
+            <span class="text-2xl font-semibold text-gray-800"
+              >Organize PDF</span
+            >
+          </span>
+          <p class="description text-gray-600 text-sm leading-relaxed mb-6">
+            Rearrange pages in your PDF to create a custom order.
           </p>
-          <div class="actions justify-end">
-            <a href="Convert_PDF/Organize_PDF.html" class="accept"
+          <div class="actions flex justify-end">
+            <a
+              href="Convert_PDF/Organize_PDF.html"
+              class="accept bg-teal-500 hover:bg-teal-600 text-white font-medium px-5 py-2 rounded-lg shadow-md transition-all duration-300"
               >Go To Page</a
             >
           </div>
         </div>
-        <div class="cookie-card">
-          <span class="title flex items-center gap-2"
-            ><span class="bg-orange-100 text-orange-600 rounded-lg p-2"
-              ><i class="fas fa-wrench"></i></span
-            >Repair PDF</span
-          >
-          <p class="description">Fix corrupted or damaged PDF files.</p>
-          <div class="actions justify-end">
-            <a href="Convert_PDF/Repair_pdf.html" class="accept">Go To Page</a>
+        <div
+          class="cookie-card max-w-md mx-auto bg-white shadow-lg rounded-2xl p-6 border border-orange-200 transition-transform transform hover:scale-105 hover:shadow-orange-300"
+        >
+          <span class="title flex items-center gap-3 mb-4">
+            <span
+              class="bg-orange-100 text-orange-600 rounded-full p-3 shadow-inner"
+            >
+              <i class="fas fa-wrench text-xl"></i>
+            </span>
+            <span class="text-2xl font-semibold text-gray-800">Repair PDF</span>
+          </span>
+          <p class="description text-gray-600 text-sm leading-relaxed mb-6">
+            Fix corrupted or damaged PDF files to restore accessibility.
+          </p>
+          <div class="actions flex justify-end">
+            <a
+              href="Convert_PDF/Repair_pdf.html"
+              class="accept bg-orange-500 hover:bg-orange-600 text-white font-medium px-5 py-2 rounded-lg shadow-md transition-all duration-300"
+              >Go To Page</a
+            >
           </div>
         </div>
-        <div class="cookie-card">
-          <span class="title flex items-center gap-2"
-            ><span class="bg-rose-100 text-rose-600 rounded-lg p-2"
-              ><i class="fas fa-redo"></i></span
-            >Rotate PDF</span
-          >
-          <p class="description">
+        <div
+          class="cookie-card max-w-md mx-auto bg-white shadow-lg rounded-2xl p-6 border border-rose-200 transition-transform transform hover:scale-105 hover:shadow-rose-300"
+        >
+          <span class="title flex items-center gap-3 mb-4">
+            <span
+              class="bg-rose-100 text-rose-600 rounded-full p-3 shadow-inner"
+            >
+              <i class="fas fa-redo text-xl"></i>
+            </span>
+            <span class="text-2xl font-semibold text-gray-800">Rotate PDF</span>
+          </span>
+          <p class="description text-gray-600 text-sm leading-relaxed mb-6">
             Rotate pages in your PDF to the desired orientation.
           </p>
-          <div class="actions justify-end">
-            <a href="Convert_PDF/Rotate_PDF.html" class="accept">Go To Page</a>
-          </div>
-        </div>
-        <div class="cookie-card">
-          <span class="title flex items-center gap-2"
-            ><span class="bg-lime-100 text-lime-600 rounded-lg p-2"
-              ><i class="fas fa-list-ol"></i></span
-            >Add Page Numbers</span
-          >
-          <p class="description">
-            Add page numbers to your PDF for easy reference.
-          </p>
-          <div class="actions justify-end">
-            <a href="Convert_PDF/Page_Number.html" class="accept">Go To Page</a>
-          </div>
-        </div>
-        <div class="cookie-card">
-          <span class="title flex items-center gap-2"
-            ><span class="bg-cyan-100 text-cyan-600 rounded-lg p-2"
-              ><i class="fas fa-tint"></i></span
-            >Add Watermark</span
-          >
-          <p class="description">
-            Insert a watermark into your PDF for branding or security.
-          </p>
-          <div class="actions justify-end">
-            <a href="Convert_PDF/Watermark_PDF.html" class="accept"
+          <div class="actions flex justify-end">
+            <a
+              href="Convert_PDF/Rotate_PDF.html"
+              class="accept bg-rose-500 hover:bg-rose-600 text-white font-medium px-5 py-2 rounded-lg shadow-md transition-all duration-300"
               >Go To Page</a
             >
           </div>
         </div>
-      </div>
-      <div
-        class="flex flex-col sm:flex-row gap-4 w-full max-w-2xl mx-auto my-6"
-      >
-        <div class="cookie-card flex-1">
-          <span class="title flex items-center gap-2">
+        <div
+          class="cookie-card max-w-md mx-auto bg-white shadow-lg rounded-2xl p-6 border border-lime-200 transition-transform transform hover:scale-105 hover:shadow-lime-300"
+        >
+          <span class="title flex items-center gap-3 mb-4">
             <span
-              class="bg-cyan-100 text-cyan-600 rounded-lg p-2 flex items-center justify-center"
+              class="bg-lime-100 text-lime-600 rounded-full p-3 shadow-inner"
             >
-              <i class="fas fa-eye text-lg"></i>
+              <i class="fas fa-list-ol text-xl"></i>
             </span>
-            PDF Viewer
+            <span class="text-2xl font-semibold text-gray-800"
+              >Add Page Numbers</span
+            >
           </span>
-          <p class="description">View your PDF here.</p>
-          <div class="actions justify-end">
-            <a href="Convert_PDF/PDF_Viewer.html" class="accept">Go To Page</a>
+          <p class="description text-gray-600 text-sm leading-relaxed mb-6">
+            Add page numbers to your PDF for easy reference.
+          </p>
+          <div class="actions flex justify-end">
+            <a
+              href="Convert_PDF/Page_Number.html"
+              class="accept bg-lime-500 hover:bg-lime-600 text-white font-medium px-5 py-2 rounded-lg shadow-md transition-all duration-300"
+              >Go To Page</a
+            >
           </div>
         </div>
-        <div class="cookie-card flex-1">
-          <span class="title flex items-center gap-2">
+        <div
+          class="cookie-card max-w-md mx-auto bg-white shadow-lg rounded-2xl p-6 border border-cyan-200 transition-transform transform hover:scale-105 hover:shadow-cyan-300"
+        >
+          <span class="title flex items-center gap-3 mb-4">
             <span
-              class="bg-green-100 text-green-600 rounded-lg p-2 flex items-center justify-center"
+              class="bg-cyan-100 text-cyan-600 rounded-full p-3 shadow-inner"
             >
-              <i class="fas fa-file-signature text-lg"></i>
+              <i class="fas fa-tint text-xl"></i>
             </span>
-            PDF Generator
+            <span class="text-2xl font-semibold text-gray-800"
+              >Add Watermark</span
+            >
           </span>
-          <p class="description">Create your PDF here...</p>
-          <div class="actions justify-end">
-            <a href="Convert_PDF/PDF_Create.html" class="accept">Go To Page</a>
+          <p class="description text-gray-600 text-sm leading-relaxed mb-6">
+            Insert a watermark into your PDF for branding or security.
+          </p>
+          <div class="actions flex justify-end">
+            <a
+              href="Convert_PDF/Watermark_PDF.html"
+              class="accept bg-cyan-500 hover:bg-cyan-600 text-white font-medium px-5 py-2 rounded-lg shadow-md transition-all duration-300"
+              >Go To Page</a
+            >
+          </div>
+        </div>
+        <div
+          class="cookie-card max-w-md mx-auto bg-white shadow-lg rounded-2xl p-6 border border-cyan-200 transition-transform transform hover:scale-105 hover:shadow-cyan-300"
+        >
+          <span class="title flex items-center gap-3 mb-4">
+            <span
+              class="bg-cyan-100 text-cyan-600 rounded-full p-3 shadow-inner"
+            >
+              <i class="fas fa-eye text-xl"></i>
+            </span>
+            <span class="text-2xl font-semibold text-gray-800">PDF Viewer</span>
+          </span>
+          <p class="description text-gray-600 text-sm leading-relaxed mb-6">
+            View and navigate through your PDF documents seamlessly.
+          </p>
+          <div class="actions flex justify-end">
+            <a
+              href="Convert_PDF/PDF_Viewer.html"
+              class="accept bg-cyan-500 hover:bg-cyan-600 text-white font-medium px-5 py-2 rounded-lg shadow-md transition-all duration-300"
+              >Go To Page</a
+            >
+          </div>
+        </div>
+        <div
+          class="cookie-card max-w-md mx-auto bg-white shadow-lg rounded-2xl p-6 border border-green-200 transition-transform transform hover:scale-105 hover:shadow-green-400"
+        >
+          <span class="title flex items-center gap-3 mb-4">
+            <span
+              class="bg-green-100 text-green-600 rounded-full p-3 shadow-inner"
+            >
+              <i class="fas fa-file-signature text-xl"></i>
+            </span>
+            <span class="text-2xl font-semibold text-gray-800"
+              >PDF Generator</span
+            >
+          </span>
+          <p class="description text-gray-600 text-sm leading-relaxed mb-6">
+            Create your PDF here with custom content and formatting.
+          </p>
+          <div class="actions flex justify-end">
+            <a
+              href="Convert_PDF/PDF_Create.html"
+              class="accept bg-green-500 hover:bg-green-600 text-white font-medium px-5 py-2 rounded-lg shadow-md transition-all duration-300"
+              >Go To Page</a
+            >
           </div>
         </div>
       </div>
     </div>
+
     <!-- ...rest of the tool pages and scripts remain unchanged... -->
     <!-- (Paste your previous tool pages and script here) -->
     <!-- ... -->
