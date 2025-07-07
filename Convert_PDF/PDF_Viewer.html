@@ -145,6 +145,86 @@
           transform: translateY(0);
         }
       }
+
+      /* Smooth transitions for modals and sidebar */
+      #fileInfoModal,
+      #noteModal,
+      #loadingModal,
+      #noFileModal,
+      #noteSidePanel {
+        transition: opacity 0.3s, transform 0.3s, visibility 0.3s;
+      }
+      #fileInfoModal:not(.hidden),
+      #noteModal:not(.hidden),
+      #loadingModal:not(.hidden),
+      #noFileModal:not(.hidden),
+      #noteSidePanel.open {
+        opacity: 1;
+        visibility: visible;
+      }
+      #fileInfoModal.hidden,
+      #noteModal.hidden,
+      #loadingModal.hidden,
+      #noFileModal.hidden,
+      #noteSidePanel:not(.open) {
+        opacity: 0;
+        visibility: hidden;
+      }
+      /* Consistent color schemes and spacing for toolbar/buttons */
+      .toolbar-btn {
+        @apply px-3 py-2 text-sm font-medium transition-colors duration-150 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500;
+      }
+      .toolbar-btn.active,
+      .toolbar-btn[aria-pressed='true'] {
+        @apply bg-blue-600 text-white;
+      }
+      .toolbar-btn:not(.active):not([aria-pressed='true']) {
+        @apply bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600;
+      }
+      .toolbar-group {
+        @apply flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-1;
+      }
+      /* View mode badge */
+      .view-mode-badge {
+        @apply ml-2 px-2 py-1 rounded-full text-xs font-semibold bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200 border border-primary-300 dark:border-primary-700;
+        transition: background 0.2s, color 0.2s;
+      }
+
+      /* Fullscreen navigation buttons */
+      .fullscreen-nav-btn {
+        position: fixed;
+        top: 50%;
+        z-index: 100;
+        background: rgba(30, 41, 59, 0.7);
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transform: translateY(-50%);
+        transition: background 0.2s;
+      }
+      .fullscreen-nav-btn:hover {
+        background: rgba(59, 130, 246, 0.9);
+      }
+      #fullscreenPrevBtn {
+        left: 24px;
+      }
+      #fullscreenNextBtn {
+        right: 24px;
+      }
+      .fullscreen-active #fullscreenPrevBtn,
+      .fullscreen-active #fullscreenNextBtn {
+        display: flex;
+      }
+      #fullscreenPrevBtn,
+      #fullscreenNextBtn {
+        display: none;
+      }
     </style>
   </head>
   <body
@@ -184,60 +264,22 @@
             ></div>
             <span class="ms-3 text-sm font-medium">Dark Mode</span>
           </label>
-
-          <label
-            for="pdfUpload"
-            class="control-button cursor-pointer bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            Upload PDF
-          </label>
-          <input type="file" id="pdfUpload" accept=".pdf" class="hidden" />
         </div>
       </div>
     </header>
 
     <!-- Main Content -->
-    <main class="flex flex-1 flex-col md:flex-row overflow-hidden">
+    <main class="-mt-6 flex flex-1 flex-col md:flex-row overflow-hidden">
       <!-- Sidebar with thumbnails -->
       <aside
         id="thumbnailSidebar"
-        class="w-full md:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto hidden md:block"
+        class="w-full md:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto hidden md:block transition-all duration-300"
+        style="height: auto; max-height: 100vh"
       >
         <div
           class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center"
         >
           <h2 class="font-semibold">Page Thumbnails</h2>
-          <button
-            id="closeSidebar"
-            class="md:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
         </div>
         <div id="thumbnailContainer" class="p-2 grid grid-cols-1 gap-3"></div>
       </aside>
@@ -275,9 +317,9 @@
               class="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden"
             >
               <button
-                id="prevPage"
-                class="control-button bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 p-2 border-r border-gray-300 dark:border-gray-600"
-                title="Previous page"
+                id="prev-page"
+                class="px-3 py-2 border-r border-gray-300 hover:bg-gray-100 rounded-l-lg"
+                aria-label="Previous page"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -294,11 +336,15 @@
                   />
                 </svg>
               </button>
-              <span id="pageInfo" class="px-3 py-1">0 / 0</span>
+              <div class="px-3 py-2 flex items-center">
+                <span id="current-page">0</span>
+                <span class="mx-1">/</span>
+                <span id="total-pages">0</span>
+              </div>
               <button
-                id="nextPage"
-                class="control-button bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 p-2 border-l border-gray-300 dark:border-gray-600"
-                title="Next page"
+                id="next-page"
+                class="px-3 py-2 border-l border-gray-300 hover:bg-gray-100 rounded-r-lg"
+                aria-label="Next page"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -325,6 +371,7 @@
               <button
                 id="zoomOut"
                 class="control-button bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 p-2 border-r border-gray-300 dark:border-gray-600"
+                aria-label="Zoom out"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -345,6 +392,7 @@
               <button
                 id="zoomIn"
                 class="control-button bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 p-2 border-l border-gray-300 dark:border-gray-600"
+                aria-label="Zoom in"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -361,14 +409,12 @@
                   />
                 </svg>
               </button>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <div class="dropdown relative">
               <button
-                id="annotateBtn"
-                class="control-button bg-primary-100 dark:bg-primary-900 hover:bg-primary-200 dark:hover:bg-primary-800 text-primary-800 dark:text-primary-200 font-medium py-2 px-3 rounded-lg flex items-center gap-1"
+                id="fullscreenBtn"
+                class="control-button bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 p-2 border-l border-gray-300 dark:border-gray-600"
+                aria-label="Fullscreen"
+                title="View PDF in fullscreen"
+                type="button"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -381,71 +427,260 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                  />
-                </svg>
-                Annotate
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 9l-7 7-7-7"
+                    d="M4 8V6a2 2 0 012-2h2M16 4h2a2 2 0 012 2v2M20 16v2a2 2 0 01-2 2h-2M8 20H6a2 2 0 01-2-2v-2"
                   />
                 </svg>
               </button>
-              <div
-                id="annotateDropdown"
-                class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-50 border border-gray-200 dark:border-gray-700"
+              <script>
+                // Fullscreen logic for fullscreenBtn
+                document.addEventListener('DOMContentLoaded', function () {
+                  const fullscreenBtn =
+                    document.getElementById('fullscreenBtn');
+                  // Find the main PDF area to fullscreen
+                  const pdfArea = document.querySelector(
+                    '.md\\:flex-1.min-w-0.flex.flex-col.overflow-hidden'
+                  );
+                  function isFullscreen() {
+                    return (
+                      document.fullscreenElement === pdfArea ||
+                      document.webkitFullscreenElement === pdfArea ||
+                      document.mozFullScreenElement === pdfArea ||
+                      document.msFullscreenElement === pdfArea
+                    );
+                  }
+                  function enterFullscreen() {
+                    if (pdfArea.requestFullscreen) pdfArea.requestFullscreen();
+                    else if (pdfArea.webkitRequestFullscreen)
+                      pdfArea.webkitRequestFullscreen();
+                    else if (pdfArea.mozRequestFullScreen)
+                      pdfArea.mozRequestFullScreen();
+                    else if (pdfArea.msRequestFullscreen)
+                      pdfArea.msRequestFullscreen();
+                  }
+                  function exitFullscreen() {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                    else if (document.webkitExitFullscreen)
+                      document.webkitExitFullscreen();
+                    else if (document.mozCancelFullScreen)
+                      document.mozCancelFullScreen();
+                    else if (document.msExitFullscreen)
+                      document.msExitFullscreen();
+                  }
+                  fullscreenBtn.addEventListener('click', function () {
+                    if (!isFullscreen()) {
+                      enterFullscreen();
+                    } else {
+                      exitFullscreen();
+                    }
+                  });
+                });
+              </script>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <!--properties-->
+            <!-- File Info Button -->
+            <button
+              id="fileInfoBtn"
+              class="control-button bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 p-2 rounded-lg flex items-center gap-1"
+              title="Show file info"
+              aria-label="Show file info"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                <button
-                  id="highlightBtn"
-                  class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 text-yellow-500"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M12 20c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8z"
+                />
+              </svg>
+              File Info
+            </button>
+
+            <!-- File Info Modal -->
+            <div
+              id="fileInfoModal"
+              class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="fileInfoModalTitle"
+              tabindex="-1"
+            >
+              <div
+                class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4"
+              >
+                <div class="flex justify-between items-center mb-4">
+                  <h3 id="fileInfoModalTitle" class="text-lg font-semibold">
+                    PDF File Info
+                  </h3>
+                  <button
+                    id="closeFileInfoModal"
+                    class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 text-2xl font-bold"
+                    title="Close"
+                    aria-label="Close file info modal"
                   >
-                    <path
-                      fill-rule="evenodd"
-                      d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zm7-10a1 1 0 01.707.293l.707.707L15 4.414l1.293-1.293a1 1 0 111.414 1.414l-1.293 1.293L18 7.414l1.293 1.293a1 1 0 01-1.414 1.414L16.586 9l-1.293 1.293-1.293-1.293a1 1 0 010-1.414l1.293-1.293-1.293-1.293L12.707 3.7a1 1 0 010-1.414z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                  Highlight Text
-                </button>
-                <button
-                  id="addNoteBtn"
-                  class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 text-amber-500"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                  Add Note
-                </button>
+                    &times;
+                  </button>
+                </div>
+                <div
+                  id="fileInfoContent"
+                  class="text-gray-800 dark:text-gray-100 text-sm"
+                ></div>
               </div>
             </div>
 
+            <script>
+              document.addEventListener('DOMContentLoaded', () => {
+                const fileInfoBtn = document.getElementById('fileInfoBtn');
+                const fileInfoModal = document.getElementById('fileInfoModal');
+                const closeFileInfoModal =
+                  document.getElementById('closeFileInfoModal');
+                const fileInfoContent =
+                  document.getElementById('fileInfoContent');
+
+                fileInfoBtn.addEventListener('click', async () => {
+                  let file = null;
+                  let pageCount = state.pdfDoc ? state.pdfDoc.numPages : 'N/A';
+                  let creationDate = 'N/A';
+
+                  // Try to get file info from upload or openFiles
+                  if (window.pdfUpload?.files && window.pdfUpload.files[0]) {
+                    file = window.pdfUpload.files[0];
+                  } else if (window.openFiles?.length > 0) {
+                    file = {
+                      name: window.openFiles[window.currentFileIndex].name,
+                      size: window.openFiles[window.currentFileIndex].data
+                        .length,
+                      type: 'application/pdf',
+                    };
+                  }
+
+                  // Try to get page count and creation date from PDF.js state
+                  if (window.state?.pdfDoc) {
+                    try {
+                      const pdfDoc = window.state.pdfDoc;
+
+                      // Ensure numPages is available
+                      if (typeof pdfDoc.numPages === 'number') {
+                        pageCount = pdfDoc.numPages;
+                      } else {
+                        // Fallback: try to get first page to trigger loading
+                        await pdfDoc.getPage(1);
+                        pageCount = pdfDoc.numPages || 'N/A';
+                      }
+
+                      // Get metadata
+                      if (typeof pdfDoc.getMetadata === 'function') {
+                        const metadata = await pdfDoc.getMetadata();
+                        creationDate = metadata.info?.CreationDate || 'N/A';
+                      }
+                    } catch (e) {
+                      console.error('Error reading PDF metadata:', e);
+                      pageCount = 'Error';
+                      creationDate = 'Error';
+                    }
+                  }
+
+                  // Populate file info
+                  if (file) {
+                    const sizeKB = file.size
+                      ? (file.size / 1024).toFixed(2)
+                      : '';
+                    fileInfoContent.innerHTML = `
+                  <div><span class="font-semibold">Name:</span> ${
+                    file.name || 'N/A'
+                  }</div>
+                  <div><span class="font-semibold">Size:</span> ${
+                    sizeKB ? sizeKB + ' KB' : 'N/A'
+                  }</div>
+                  <div><span class="font-semibold">Type:</span> ${
+                    file.type || 'application/pdf'
+                  }</div>
+                  <div><span class="font-semibold">Pages:</span> ${pageCount} Pages</div>
+                  <div><span class="font-semibold">Created:</span> ${creationDate}</div>
+                `;
+                  } else {
+                    fileInfoContent.textContent = 'No PDF file loaded.';
+                  }
+
+                  // Show modal
+                  fileInfoModal.classList.remove('hidden');
+                });
+
+                closeFileInfoModal.addEventListener('click', () => {
+                  fileInfoModal.classList.add('hidden');
+                });
+
+                fileInfoModal.addEventListener('click', (e) => {
+                  if (e.target === fileInfoModal) {
+                    fileInfoModal.classList.add('hidden');
+                  }
+                });
+
+                // Accessibility: Add focus trap and Esc key close
+                function trapFocus(modal) {
+                  const focusableEls = modal.querySelectorAll(
+                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                  );
+                  const firstFocusableEl = focusableEls[0];
+                  const lastFocusableEl = focusableEls[focusableEls.length - 1];
+                  modal.addEventListener('keydown', function (e) {
+                    if (e.key === 'Tab') {
+                      if (e.shiftKey) {
+                        if (document.activeElement === firstFocusableEl) {
+                          e.preventDefault();
+                          lastFocusableEl.focus();
+                        }
+                      } else {
+                        if (document.activeElement === lastFocusableEl) {
+                          e.preventDefault();
+                          firstFocusableEl.focus();
+                        }
+                      }
+                    }
+                    if (e.key === 'Escape') {
+                      modal.classList.add('hidden');
+                      fileInfoBtn.focus();
+                    }
+                  });
+                }
+                trapFocus(document.getElementById('fileInfoModal'));
+              });
+            </script>
+            <!--properties-->
+            <!--printer-->
+
+            <!-- End Printer -->
+            <label
+              for="pdfUpload"
+              class="control-button cursor-pointer bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              Upload PDF
+            </label>
+            <input type="file" id="pdfUpload" accept=".pdf" class="hidden" />
             <button
               id="downloadPdf"
               class="control-button bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-3 rounded-lg flex items-center gap-1"
+              title="Download PDF"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -576,6 +811,27 @@
       ></div>
     </div>
 
+    <!-- Tab Bar for Multi-file Viewing -->
+    <div id="tabBar" class="flex gap-2 mb-2 overflow-x-auto"></div>
+
+    <!-- Add a toast notification for errors -->
+    <div
+      id="toast"
+      class="fixed bottom-4 right-4 bg-red-600 text-white px-4 py-2 rounded shadow-lg hidden z-50"
+      role="status"
+      aria-live="polite"
+    ></div>
+
+    <!-- Add a loading spinner -->
+    <div
+      id="pageLoadingSpinner"
+      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50 hidden"
+    >
+      <div
+        class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"
+      ></div>
+    </div>
+
     <script>
       // Initialize PDF.js
       pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -600,17 +856,15 @@
       const pdfUploadModal = document.getElementById('pdfUploadModal');
       const pdfViewer = document.getElementById('pdfViewer');
       const pdfContainer = document.getElementById('pdfContainer');
-      const pageInfo = document.getElementById('pageInfo');
-      const prevPageBtn = document.getElementById('prevPage');
-      const nextPageBtn = document.getElementById('nextPage');
+      const currentPageEl = document.getElementById('current-page');
+      const totalPagesEl = document.getElementById('total-pages');
+      const prevPageBtn = document.getElementById('prev-page');
+      const nextPageBtn = document.getElementById('next-page');
       const zoomInBtn = document.getElementById('zoomIn');
       const zoomOutBtn = document.getElementById('zoomOut');
       const zoomLevelEl = document.getElementById('zoomLevel');
       const downloadBtn = document.getElementById('downloadPdf');
       const annotateBtn = document.getElementById('annotateBtn');
-      const annotateDropdown = document.getElementById('annotateDropdown');
-      const highlightBtn = document.getElementById('highlightBtn');
-      const addNoteBtn = document.getElementById('addNoteBtn');
       const thumbnailContainer = document.getElementById('thumbnailContainer');
       const thumbnailSidebar = document.getElementById('thumbnailSidebar');
       const toggleSidebarBtn = document.getElementById('toggleSidebar');
@@ -622,6 +876,26 @@
       const cancelNoteBtn = document.getElementById('cancelNote');
       const loadingModal = document.getElementById('loadingModal');
       const noFileModal = document.getElementById('noFileModal');
+      const tabBar = document.getElementById('tabBar');
+      const rotateLeftBtn = document.getElementById('rotateLeft');
+      const rotateRightBtn = document.getElementById('rotateRight');
+      const showMetadataBtn = document.getElementById('showMetadata');
+      const metadataModal = document.getElementById('metadataModal');
+      const metadataContent = document.getElementById('metadataContent');
+      const closeMetadataBtn = document.getElementById('closeMetadata');
+      const fitWidthBtn = document.getElementById('fitWidthBtn');
+      const fitPageBtn = document.getElementById('fitPageBtn');
+      const fullscreenBtn = document.getElementById('fullscreenBtn');
+      const pdfArea = document.querySelector(
+        '.md\\:flex-1.min-w-0.flex.flex-col.overflow-hidden'
+      );
+      const fullscreenPrevBtn = document.getElementById('fullscreenPrevBtn');
+      const fullscreenNextBtn = document.getElementById('fullscreenNextBtn');
+
+      // Multi-file tab state
+      let openFiles = [];
+      let currentFileIndex = 0;
+      let pageRotations = {};
 
       // Initialize dark mode
       if (
@@ -654,7 +928,6 @@
           updateThumbnailHighlight();
         }
       });
-
       nextPageBtn.addEventListener('click', () => {
         if (state.pdfDoc && state.currentPage < state.pdfDoc.numPages) {
           state.currentPage++;
@@ -694,32 +967,6 @@
         }
       });
 
-      annotateBtn.addEventListener('click', () => {
-        annotateDropdown.classList.toggle('hidden');
-      });
-
-      // Close dropdown when clicking outside
-      document.addEventListener('click', (e) => {
-        if (
-          !annotateBtn.contains(e.target) &&
-          !annotateDropdown.contains(e.target)
-        ) {
-          annotateDropdown.classList.add('hidden');
-        }
-      });
-
-      highlightBtn.addEventListener('click', () => {
-        state.mode = state.mode === 'highlight' ? 'view' : 'highlight';
-        annotateDropdown.classList.add('hidden');
-        updateUIForMode();
-      });
-
-      addNoteBtn.addEventListener('click', () => {
-        state.mode = state.mode === 'note' ? 'view' : 'note';
-        annotateDropdown.classList.add('hidden');
-        updateUIForMode();
-      });
-
       toggleSidebarBtn.addEventListener('click', () => {
         thumbnailSidebar.classList.toggle('hidden');
       });
@@ -751,58 +998,157 @@
         state.notePosition = null;
       });
 
-      // Touch support for mobile
-      let touchStartX = 0;
-      let touchEndX = 0;
-
-      pdfContainer.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
+      fitWidthBtn.addEventListener('click', async () => {
+        if (!state.pdfDoc) return;
+        const page = await state.pdfDoc.getPage(state.currentPage);
+        const container = pdfContainer;
+        const rotation = pageRotations[state.currentPage] || 0;
+        const viewport = page.getViewport({ scale: 1, rotation });
+        // Subtract some padding/margin if needed
+        const containerWidth = container.clientWidth - 32;
+        const scale = containerWidth / viewport.width;
+        state.zoom = Math.max(0.1, Math.min(scale, 5));
+        zoomLevelEl.textContent = `${Math.round(state.zoom * 100)}%`;
+        renderPage(state.currentPage);
       });
 
-      pdfContainer.addEventListener('touchend', (e) => {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
+      fitPageBtn.addEventListener('click', async () => {
+        if (!state.pdfDoc) return;
+        const page = await state.pdfDoc.getPage(state.currentPage);
+        const container = pdfContainer;
+        const rotation = pageRotations[state.currentPage] || 0;
+        const viewport = page.getViewport({ scale: 1, rotation });
+        // Subtract some padding/margin if needed
+        const containerWidth = container.clientWidth - 32;
+        const containerHeight = container.clientHeight - 32;
+        const scaleX = containerWidth / viewport.width;
+        const scaleY = containerHeight / viewport.height;
+        const scale = Math.min(scaleX, scaleY);
+        state.zoom = Math.max(0.1, Math.min(scale, 5));
+        zoomLevelEl.textContent = `${Math.round(state.zoom * 100)}%`;
+        renderPage(state.currentPage);
       });
 
-      function handleSwipe() {
-        const swipeThreshold = 50;
-        if (touchEndX < touchStartX - swipeThreshold) {
-          // Swipe left - next page
-          if (state.pdfDoc && state.currentPage < state.pdfDoc.numPages) {
-            state.currentPage++;
-            renderPage(state.currentPage);
-            updateThumbnailHighlight();
-          }
+      // Add drag-and-drop support
+      pdfContainer.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        pdfContainer.classList.add('ring-4', 'ring-primary-400');
+      });
+      pdfContainer.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        pdfContainer.classList.remove('ring-4', 'ring-primary-400');
+      });
+      pdfContainer.addEventListener('drop', (e) => {
+        e.preventDefault();
+        pdfContainer.classList.remove('ring-4', 'ring-primary-400');
+        if (e.dataTransfer.files.length > 0) {
+          handleFileSelect({ target: { files: e.dataTransfer.files } });
         }
+      });
 
-        if (touchEndX > touchStartX + swipeThreshold) {
-          // Swipe right - previous page
-          if (state.currentPage > 1) {
-            state.currentPage--;
-            renderPage(state.currentPage);
-            updateThumbnailHighlight();
-          }
-        }
+      // Tab bar logic
+      function updateTabBar() {
+        tabBar.innerHTML = '';
+        openFiles.forEach((file, idx) => {
+          const tab = document.createElement('button');
+          tab.className = `px-3 py-1 rounded-t-lg border-b-2 ${
+            idx === currentFileIndex
+              ? 'border-primary-600 bg-primary-100 dark:bg-primary-900'
+              : 'border-transparent bg-gray-100 dark:bg-gray-700'
+          }`;
+          tab.textContent = file.name;
+          tab.setAttribute('aria-label', `Switch to ${file.name}`);
+          tab.onclick = () => switchTab(idx);
+          tabBar.appendChild(tab);
+        });
+      }
+      function switchTab(idx) {
+        currentFileIndex = idx;
+        loadPdfFromData(openFiles[idx].data, openFiles[idx].name);
+        updateTabBar();
       }
 
-      // Handle file selection
+      // Overwrite handleFileSelect to support multi-file
       function handleFileSelect(e) {
         const file = e.target.files[0];
         if (file && file.type === 'application/pdf') {
           loadingModal.classList.remove('hidden');
           const fileReader = new FileReader();
-
           fileReader.onload = function (event) {
             const typedArray = new Uint8Array(event.target.result);
-            loadPdfFromData(typedArray);
+            openFiles.push({ name: file.name, data: typedArray });
+            currentFileIndex = openFiles.length - 1;
+            loadPdfFromData(typedArray, file.name);
+            updateTabBar();
           };
-
           fileReader.readAsArrayBuffer(file);
         }
       }
 
-      // Load PDF from data
-      async function loadPdfFromData(data) {
+      // Add page rotation logic
+      rotateLeftBtn.addEventListener('click', () => {
+        setPageRotation(state.currentPage, -90);
+      });
+      rotateRightBtn.addEventListener('click', () => {
+        setPageRotation(state.currentPage, 90);
+      });
+      function setPageRotation(pageNum, delta) {
+        pageRotations[pageNum] =
+          ((pageRotations[pageNum] || 0) + delta + 360) % 360;
+        renderPage(pageNum);
+      }
+      // Update renderPage to apply rotation
+      async function renderPage(pageNum) {
+        if (!state.pdfDoc) return;
+        pdfViewer.innerHTML = '';
+        const page = await state.pdfDoc.getPage(pageNum);
+        const rotation = pageRotations[pageNum] || 0;
+        const viewport = page.getViewport({ scale: state.zoom, rotation });
+        const canvas = document.createElement('canvas');
+        canvas.className = 'shadow-lg';
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        pdfViewer.appendChild(canvas);
+        pdfViewer.style.position = 'relative';
+        const context = canvas.getContext('2d');
+        const renderContext = { canvasContext: context, viewport: viewport };
+        await page.render(renderContext).promise;
+        currentPageEl.textContent = pageNum;
+        totalPagesEl.textContent = state.pdfDoc.numPages;
+        canvas.addEventListener('click', handleCanvasClick);
+        renderAnnotations(pageNum);
+      }
+
+      // --- Render all pages in scroll mode ---
+      async function renderAllPages() {
+        if (!state.pdfDoc) return;
+        pdfViewer.innerHTML = '';
+        for (let i = 1; i <= state.pdfDoc.numPages; i++) {
+          const page = await state.pdfDoc.getPage(i);
+          const rotation = pageRotations[i] || 0;
+          const viewport = page.getViewport({ scale: state.zoom, rotation });
+          const canvas = document.createElement('canvas');
+          canvas.className = 'shadow-lg mb-6';
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          pdfViewer.appendChild(canvas);
+          pdfViewer.style.position = 'relative';
+          const context = canvas.getContext('2d');
+          const renderContext = { canvasContext: context, viewport: viewport };
+          await page.render(renderContext).promise;
+          // Render annotations for this page
+          renderAnnotations(i);
+          // Add page number label
+          const label = document.createElement('div');
+          label.className = 'text-center text-xs text-gray-500 my-2';
+          label.textContent = `Page ${i}`;
+          pdfViewer.appendChild(label);
+        }
+        currentPageEl.textContent = 1;
+        totalPagesEl.textContent = state.pdfDoc.numPages;
+      }
+      // --- Replace renderPage with renderAllPages in loadPdfFromData ---
+      async function loadPdfFromData(data, fileName) {
         try {
           // Reset state
           state.pdfDoc = null;
@@ -825,14 +1171,14 @@
           noFileModal.classList.add('hidden');
 
           // Update UI
-          pageInfo.textContent = `${state.currentPage} / ${state.pdfDoc.numPages}`;
+          currentPageEl.textContent = `${state.currentPage} / ${state.pdfDoc.numPages}`;
           zoomLevelEl.textContent = '100%';
 
           // Generate thumbnails
           generateThumbnails();
 
-          // Render first page
-          renderPage(state.currentPage);
+          // Render all pages
+          await renderAllPages();
 
           loadingModal.classList.add('hidden');
         } catch (error) {
@@ -934,7 +1280,8 @@
         // No selectable or visible text will appear over the PDF canvas
 
         // Update page info
-        pageInfo.textContent = `${pageNum} / ${state.pdfDoc.numPages}`;
+        currentPageEl.textContent = pageNum;
+        totalPagesEl.textContent = state.pdfDoc.numPages;
 
         // Add click handler for annotations
         canvas.addEventListener('click', handleCanvasClick);
@@ -1056,6 +1403,7 @@
 
       // Add keyboard navigation for page turning
       window.addEventListener('keydown', (e) => {
+        if (!state.pdfDoc) return;
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')
           return;
         if (e.key === 'ArrowLeft') prevPageBtn.click();
@@ -1072,6 +1420,185 @@
       highlightBtn.title = 'Highlight text';
       addNoteBtn.title = 'Add note';
       toggleSidebarBtn.title = 'Show/hide thumbnails';
+
+      // Accessibility: Keyboard shortcuts
+      window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')
+          return;
+        if (e.key === 'ArrowLeft') prevPageBtn.click();
+        if (e.key === 'ArrowRight') nextPageBtn.click();
+        if (e.key === 'r' && e.ctrlKey) rotateRightBtn.click();
+        if (e.key === 'l' && e.ctrlKey) rotateLeftBtn.click();
+        if (e.key === 'm' && e.ctrlKey) showMetadataBtn.click();
+        if (e.ctrlKey && e.key === 'f') {
+          e.preventDefault();
+          // Focus search input or open search modal
+        }
+        if (e.ctrlKey && e.key === 's') {
+          e.preventDefault();
+          downloadBtn.click();
+        }
+      });
+
+      // Show/hide spinner in renderPage and renderAllPages
+      function showSpinner() {
+        document
+          .getElementById('pageLoadingSpinner')
+          .classList.remove('hidden');
+      }
+      function hideSpinner() {
+        document.getElementById('pageLoadingSpinner').classList.add('hidden');
+      }
+
+      // Show toast for errors
+      function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 3000);
+      }
+
+      // Security: Escape HTML for user content
+      function escapeHTML(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      // Improved dark mode toggle: use system preference on first load
+      (function () {
+        const prefersDark = window.matchMedia(
+          '(prefers-color-scheme: dark)'
+        ).matches;
+        if (localStorage.getItem('darkMode') === null) {
+          if (prefersDark) {
+            document.documentElement.classList.add('dark');
+            darkModeToggle.checked = true;
+            localStorage.setItem('darkMode', 'true');
+          } else {
+            document.documentElement.classList.remove('dark');
+            darkModeToggle.checked = false;
+            localStorage.setItem('darkMode', 'false');
+          }
+        }
+      })();
+
+      // Show current view mode visually
+      const viewModeBadge = document.getElementById('viewModeBadge');
+      function updateViewModeBadge() {
+        if (viewMode === 'single') {
+          viewModeBadge.textContent = 'Single Page';
+          viewModeBadge.classList.remove('bg-blue-600', 'text-white');
+          viewModeBadge.classList.add('bg-primary-100', 'text-primary-700');
+        } else {
+          viewModeBadge.textContent = 'Two-Page Spread';
+          viewModeBadge.classList.remove('bg-primary-100', 'text-primary-700');
+          viewModeBadge.classList.add('bg-blue-600', 'text-white');
+        }
+      }
+      // Patch setViewMode to update badge and button states
+      function setViewMode(mode) {
+        if (mode === 'single') {
+          viewMode = 'single';
+          singlePageBtn.classList.add('active');
+          singlePageBtn.setAttribute('aria-pressed', 'true');
+          twoPageBtn.classList.remove('active');
+          twoPageBtn.setAttribute('aria-pressed', 'false');
+          if (state.pdfDoc) renderPage(state.currentPage);
+        } else {
+          viewMode = 'two';
+          twoPageBtn.classList.add('active');
+          twoPageBtn.setAttribute('aria-pressed', 'true');
+          singlePageBtn.classList.remove('active');
+          singlePageBtn.setAttribute('aria-pressed', 'false');
+          if (state.pdfDoc) renderPage(state.currentPage);
+        }
+        updateViewModeBadge();
+      }
+      // Call updateViewModeBadge on load
+      updateViewModeBadge();
+
+      function updateThumbnailContainerSize() {
+        if (!state.pdfDoc) return;
+        // Get the first page as a reference for size
+        state.pdfDoc.getPage(1).then((page) => {
+          const rotation = pageRotations[1] || 0;
+          const viewport = page.getViewport({ scale: state.zoom, rotation });
+          // Set the container height to fit the page thumbnails
+          thumbnailContainer.style.height = `${
+            viewport.height * 0.22 * state.pdfDoc.numPages
+          }px`;
+          // Optionally, set width if needed
+          // thumbnailContainer.style.width = `${viewport.width * 0.22}px`;
+        });
+      }
+
+      // Fullscreen logic
+      function isFullscreen() {
+        return (
+          document.fullscreenElement === pdfArea ||
+          document.webkitFullscreenElement === pdfArea ||
+          document.mozFullScreenElement === pdfArea ||
+          document.msFullscreenElement === pdfArea
+        );
+      }
+
+      function enterFullscreen() {
+        if (pdfArea.requestFullscreen) pdfArea.requestFullscreen();
+        else if (pdfArea.webkitRequestFullscreen)
+          pdfArea.webkitRequestFullscreen();
+        else if (pdfArea.mozRequestFullScreen) pdfArea.mozRequestFullScreen();
+        else if (pdfArea.msRequestFullscreen) pdfArea.msRequestFullscreen();
+      }
+
+      function exitFullscreen() {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+        else if (document.msExitFullscreen) document.msExitFullscreen();
+      }
+
+      fullscreenBtn.addEventListener('click', () => {
+        if (!isFullscreen()) {
+          enterFullscreen();
+        } else {
+          exitFullscreen();
+        }
+      });
+
+      function updateFullscreenNavBtns() {
+        if (isFullscreen()) {
+          document.body.classList.add('fullscreen-active');
+        } else {
+          document.body.classList.remove('fullscreen-active');
+        }
+      }
+
+      document.addEventListener('fullscreenchange', updateFullscreenNavBtns);
+      document.addEventListener(
+        'webkitfullscreenchange',
+        updateFullscreenNavBtns
+      );
+      document.addEventListener('mozfullscreenchange', updateFullscreenNavBtns);
+      document.addEventListener('MSFullscreenChange', updateFullscreenNavBtns);
+
+      fullscreenPrevBtn.addEventListener('click', () => {
+        if (state.currentPage > 1) {
+          state.currentPage--;
+          renderPage(state.currentPage);
+          updateThumbnailHighlight();
+        }
+      });
+      fullscreenNextBtn.addEventListener('click', () => {
+        if (state.pdfDoc && state.currentPage < state.pdfDoc.numPages) {
+          state.currentPage++;
+          renderPage(state.currentPage);
+          updateThumbnailHighlight();
+        }
+      });
     </script>
     <script>
       (function () {
