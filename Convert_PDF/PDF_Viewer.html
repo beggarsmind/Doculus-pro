@@ -225,6 +225,14 @@
       #fullscreenNextBtn {
         display: none;
       }
+
+      #thumbnailSidebar {
+        max-height: 100vh;
+      }
+      #thumbnailContainer {
+        transition: height 0.3s;
+        /* Height will be set dynamically by JS */
+      }
     </style>
   </head>
   <body
@@ -274,12 +282,11 @@
       <aside
         id="thumbnailSidebar"
         class="w-full md:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto hidden md:block transition-all duration-300"
-        style="height: auto; max-height: 100vh"
       >
         <div
           class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center"
         >
-          <h2 class="font-semibold">Page Thumbnails</h2>
+          <h2 class="font-semibold text-lg text-center">Page Thumbnails</h2>
         </div>
         <div id="thumbnailContainer" class="p-2 grid grid-cols-1 gap-3"></div>
       </aside>
@@ -464,7 +471,7 @@
                     else if (document.mozCancelFullScreen)
                       document.mozCancelFullScreen();
                     else if (document.msExitFullscreen)
-                      document.msExitFullscreen();
+                      document.msRequestFullscreen();
                   }
                   fullscreenBtn.addEventListener('click', function () {
                     if (!isFullscreen()) {
