@@ -1255,17 +1255,41 @@
           theme: 'snow',
           modules: {
             toolbar: [
-              [{ header: [1, 2, 3, 4, 5, 6, false] }],
-              ['bold', 'italic', 'underline', 'strike'],
-              [{ color: [] }, { background: [] }],
-              [{ align: [] }],
-              [{ list: 'ordered' }, { list: 'bullet' }],
-              ['link'],
-              ['clean'],
+              [
+                { header: [1, 2, 3, 4, 5, 6, false] },
+                { font: [] },
+                { size: ['small', false, 'large', 'huge', '2.5rem'] }, // increased size in one row
+                'bold',
+                'italic',
+                'underline',
+                'strike',
+                { script: 'super' },
+                { script: 'sub' },
+                { color: [] },
+                { background: [] },
+                { align: [] },
+                { list: 'ordered' },
+                { list: 'bullet' },
+                { indent: '-1' },
+                { indent: '+1' },
+                'blockquote',
+                'code-block',
+                'link',
+                'image',
+                'video',
+                'clean',
+              ],
             ],
           },
           placeholder: 'Start writing your document...',
         });
+
+        // Modern design: increase editor font size and padding
+        document.querySelector('.ql-editor').style.fontSize = '1.25rem';
+        document.querySelector('.ql-editor').style.lineHeight = '2';
+        document.querySelector('.ql-editor').style.padding = '2rem';
+        document.querySelector('.ql-toolbar').style.fontSize = '1.1rem';
+        document.querySelector('.ql-toolbar').style.padding = '1rem 2rem';
 
         // Tab switching
         document.querySelectorAll('.tab-button').forEach((button) => {
