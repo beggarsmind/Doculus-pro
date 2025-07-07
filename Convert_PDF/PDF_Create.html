@@ -1,1 +1,1972 @@
 
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doculus Pro - PDF Creator</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.quilljs.com/1.3.6/quill.snow.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <style>
+      :root {
+        --primary-color: #4f46e5;
+        --secondary-color: #818cf8;
+        --accent-color: #c7d2fe;
+        --text-color: #1f2937;
+        --bg-color: #ffffff;
+        --sidebar-bg: #f3f4f6;
+        --card-bg: #ffffff;
+        --border-color: #e5e7eb;
+      }
+
+      .dark {
+        --primary-color: #6366f1;
+        --secondary-color: #818cf8;
+        --accent-color: #4338ca;
+        --text-color: #f9fafb;
+        --bg-color: #111827;
+        --sidebar-bg: #1f2937;
+        --card-bg: #1f2937;
+        --border-color: #374151;
+      }
+
+      body {
+        color: var(--text-color);
+        background-color: var(--bg-color);
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      .sidebar {
+        background-color: var(--sidebar-bg);
+        border-color: var(--border-color);
+      }
+
+      .card {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+      }
+
+      .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+      }
+
+      .btn-secondary {
+        background-color: var(--secondary-color);
+        color: white;
+      }
+
+      .btn-outline {
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+      }
+
+      .ql-toolbar.ql-snow,
+      .ql-container.ql-snow {
+        border-color: var(--border-color) !important;
+      }
+
+      .ql-editor {
+        min-height: 200px;
+        background-color: var(--card-bg);
+        color: var(--text-color);
+      }
+
+      .page {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .page-content {
+        position: relative;
+        z-index: 10;
+      }
+
+      .watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 48px;
+        opacity: 0.15;
+        pointer-events: none;
+        z-index: 5;
+        white-space: nowrap;
+      }
+
+      .header,
+      .footer {
+        padding: 10px;
+        text-align: center;
+        border-bottom: 1px solid var(--border-color);
+        border-top: 1px solid var(--border-color);
+      }
+
+      .page-number {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        font-size: 12px;
+      }
+
+      .image-container {
+        position: relative;
+        display: inline-block;
+        margin: 5px;
+      }
+
+      .image-container img {
+        max-width: 100%;
+        cursor: move;
+      }
+
+      .image-controls {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 3px;
+        display: none;
+      }
+
+      .image-container:hover .image-controls {
+        display: flex;
+      }
+
+      .resize-handle {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background-color: var(--primary-color);
+        border-radius: 50%;
+      }
+
+      .resize-handle.nw {
+        top: -5px;
+        left: -5px;
+        cursor: nwse-resize;
+      }
+
+      .resize-handle.ne {
+        top: -5px;
+        right: -5px;
+        cursor: nesw-resize;
+      }
+
+      .resize-handle.sw {
+        bottom: -5px;
+        left: -5px;
+        cursor: nesw-resize;
+      }
+
+      .resize-handle.se {
+        bottom: -5px;
+        right: -5px;
+        cursor: nwse-resize;
+      }
+
+      .signature-pad {
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+      }
+
+      .table-editor table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .table-editor th,
+      .table-editor td {
+        border: 1px solid var(--border-color);
+        padding: 8px;
+        position: relative;
+      }
+
+      .table-controls {
+        margin-bottom: 10px;
+      }
+
+      .shape {
+        position: relative;
+        display: inline-block;
+        margin: 5px;
+      }
+
+      .shape svg {
+        max-width: 100%;
+      }
+
+      .shape-controls {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 3px;
+        display: none;
+      }
+
+      .shape:hover .shape-controls {
+        display: flex;
+      }
+
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--sidebar-bg);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--secondary-color);
+        border-radius: 4px;
+      }
+
+      /* Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+        animation: fadeIn 0.3s ease-in-out;
+      }
+
+      .tab-button {
+        padding: 10px 15px;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s;
+      }
+
+      .tab-button.active {
+        border-bottom: 2px solid var(--primary-color);
+        color: var(--primary-color);
+      }
+
+      .dropdown {
+        position: relative;
+        display: inline-block;
+      }
+
+      .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: var(--card-bg);
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+      }
+
+      .dropdown-content a {
+        color: var(--text-color);
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+      }
+
+      .dropdown-content a:hover {
+        background-color: var(--sidebar-bg);
+      }
+
+      .dropdown:hover .dropdown-content {
+        display: block;
+      }
+
+      .color-picker {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        width: 30px;
+        height: 30px;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+      }
+
+      .color-picker::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+
+      .color-picker::-webkit-color-swatch {
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+      }
+
+      /* Tooltip */
+      .tooltip {
+        position: relative;
+        display: inline-block;
+      }
+
+      .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 120px;
+        background-color: var(--text-color);
+        color: var(--bg-color);
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -60px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 12px;
+      }
+
+      .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      /* Drag and drop area */
+      .dropzone {
+        border: 2px dashed var(--border-color);
+        border-radius: 4px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s;
+      }
+
+      .dropzone.active {
+        border-color: var(--primary-color);
+        background-color: rgba(79, 70, 229, 0.1);
+      }
+
+      /* Loading spinner */
+      .spinner {
+        border: 3px solid rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        border-top: 3px solid var(--primary-color);
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 5px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <div class="flex flex-col md:flex-row h-screen">
+      <!-- Sidebar -->
+      <div class="sidebar w-full md:w-80 p-4 border-r overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+          <h1 class="text-xl font-bold">Doculus Pro</h1>
+          <button
+            id="darkModeToggle"
+            class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex border-b mb-4">
+          <button class="tab-button active" data-tab="document">
+            Document
+          </button>
+          <button class="tab-button" data-tab="insert">Insert</button>
+          <button class="tab-button" data-tab="export">Export</button>
+        </div>
+
+        <!-- Document Settings Tab -->
+        <div id="document-tab" class="tab-content active">
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Page Size</label>
+            <select
+              id="pageSize"
+              class="w-full p-2 border rounded bg-transparent"
+            >
+              <option value="a4">A4 (210 × 297 mm)</option>
+              <option value="letter">Letter (8.5 × 11 in)</option>
+              <option value="legal">Legal (8.5 × 14 in)</option>
+              <option value="a3">A3 (297 × 420 mm)</option>
+              <option value="a5">A5 (148 × 210 mm)</option>
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Orientation</label>
+            <div class="flex space-x-2">
+              <button
+                id="orientationPortrait"
+                class="flex-1 p-2 border rounded btn-primary"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 mx-auto"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                </svg>
+                <span class="text-xs">Portrait</span>
+              </button>
+              <button
+                id="orientationLandscape"
+                class="flex-1 p-2 border rounded btn-outline"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 mx-auto transform rotate-90"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                </svg>
+                <span class="text-xs">Landscape</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Margins (mm)</label>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-xs">Top</label>
+                <input
+                  type="number"
+                  id="marginTop"
+                  value="20"
+                  min="0"
+                  class="w-full p-2 border rounded bg-transparent"
+                />
+              </div>
+              <div>
+                <label class="text-xs">Right</label>
+                <input
+                  type="number"
+                  id="marginRight"
+                  value="20"
+                  min="0"
+                  class="w-full p-2 border rounded bg-transparent"
+                />
+              </div>
+              <div>
+                <label class="text-xs">Bottom</label>
+                <input
+                  type="number"
+                  id="marginBottom"
+                  value="20"
+                  min="0"
+                  class="w-full p-2 border rounded bg-transparent"
+                />
+              </div>
+              <div>
+                <label class="text-xs">Left</label>
+                <input
+                  type="number"
+                  id="marginLeft"
+                  value="20"
+                  min="0"
+                  class="w-full p-2 border rounded bg-transparent"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Border Style</label>
+            <select
+              id="borderStyle"
+              class="w-full p-2 border rounded bg-transparent"
+            >
+              <option value="none">None</option>
+              <option value="solid">Solid</option>
+              <option value="dashed">Dashed</option>
+              <option value="dotted">Dotted</option>
+              <option value="double">Double</option>
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Border Color</label>
+            <input
+              type="color"
+              id="borderColor"
+              value="#000000"
+              class="color-picker"
+            />
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1"
+              >Background Color</label
+            >
+            <input
+              type="color"
+              id="backgroundColor"
+              value="#ffffff"
+              class="color-picker"
+            />
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Header</label>
+            <textarea
+              id="headerText"
+              class="w-full p-2 border rounded bg-transparent"
+              placeholder="Enter header text"
+            ></textarea>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Footer</label>
+            <textarea
+              id="footerText"
+              class="w-full p-2 border rounded bg-transparent"
+              placeholder="Enter footer text"
+            ></textarea>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Watermark</label>
+            <input
+              type="text"
+              id="watermarkText"
+              class="w-full p-2 border rounded bg-transparent"
+              placeholder="Enter watermark text"
+            />
+          </div>
+
+          <div class="mb-4">
+            <label class="flex items-center">
+              <input type="checkbox" id="showPageNumbers" class="mr-2" />
+              <span class="text-sm font-medium">Show Page Numbers</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Insert Tab -->
+        <div id="insert-tab" class="tab-content">
+          <div class="mb-4">
+            <button
+              id="insertImage"
+              class="w-full p-2 mb-2 border rounded btn-outline flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              Insert Image
+            </button>
+            <input
+              type="file"
+              id="imageUpload"
+              accept="image/*"
+              class="hidden"
+            />
+
+            <div class="dropzone mt-2" id="imageDrop">
+              <p class="text-sm">Drag & drop images here</p>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <button
+              id="insertTable"
+              class="w-full p-2 mb-2 border rounded btn-outline flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M5 4a3 3 0 00-3 3v6a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H5zm-1 9v-1h5v2H5a1 1 0 01-1-1zm7 1h4a1 1 0 001-1v-1h-5v2zm0-4h5V8h-5v2zM9 8H4v2h5V8z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              Insert Table
+            </button>
+          </div>
+
+          <div class="mb-4">
+            <button
+              id="insertSignature"
+              class="w-full p-2 mb-2 border rounded btn-outline flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"
+                />
+                <path
+                  fill-rule="evenodd"
+                  d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              Add Signature
+            </button>
+          </div>
+
+          <div class="mb-4">
+            <button
+              id="insertShape"
+              class="w-full p-2 mb-2 border rounded btn-outline flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm11 1H6v8l4-2 4 2V6z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              Add Shape
+            </button>
+            <div class="grid grid-cols-4 gap-2 mt-2">
+              <button
+                class="shape-btn p-1 border rounded"
+                data-shape="rectangle"
+              >
+                <svg viewBox="0 0 24 24" width="20" height="20">
+                  <rect
+                    x="2"
+                    y="4"
+                    width="20"
+                    height="16"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                </svg>
+              </button>
+              <button class="shape-btn p-1 border rounded" data-shape="circle">
+                <svg viewBox="0 0 24 24" width="20" height="20">
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                </svg>
+              </button>
+              <button
+                class="shape-btn p-1 border rounded"
+                data-shape="triangle"
+              >
+                <svg viewBox="0 0 24 24" width="20" height="20">
+                  <polygon
+                    points="12,2 22,22 2,22"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                </svg>
+              </button>
+              <button class="shape-btn p-1 border rounded" data-shape="line">
+                <svg viewBox="0 0 24 24" width="20" height="20">
+                  <line
+                    x1="2"
+                    y1="22"
+                    x2="22"
+                    y2="2"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <button
+              id="insertDate"
+              class="w-full p-2 mb-2 border rounded btn-outline flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              Insert Date
+            </button>
+          </div>
+
+          <div class="mb-4">
+            <button
+              id="insertPageBreak"
+              class="w-full p-2 mb-2 border rounded btn-outline flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              Insert Page Break
+            </button>
+          </div>
+        </div>
+
+        <!-- Export Tab -->
+        <div id="export-tab" class="tab-content">
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Document Title</label>
+            <input
+              type="text"
+              id="documentTitle"
+              class="w-full p-2 border rounded bg-transparent"
+              placeholder="Enter document title"
+              value="Doculus Pro Document"
+            />
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Author</label>
+            <input
+              type="text"
+              id="documentAuthor"
+              class="w-full p-2 border rounded bg-transparent"
+              placeholder="Enter author name"
+            />
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">PDF Quality</label>
+            <select
+              id="pdfQuality"
+              class="w-full p-2 border rounded bg-transparent"
+            >
+              <option value="1">Standard</option>
+              <option value="2">High</option>
+              <option value="3">Very High</option>
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <button
+              id="exportPDF"
+              class="w-full p-3 rounded btn-primary flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              Export as PDF
+            </button>
+          </div>
+
+          <div class="mb-4">
+            <button
+              id="saveTemplate"
+              class="w-full p-3 rounded btn-outline flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z"
+                />
+              </svg>
+              Save as Template
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Toolbar -->
+        <div class="p-4 border-b flex flex-wrap items-center gap-2">
+          <div class="dropdown">
+            <button class="p-2 border rounded btn-outline">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
+                />
+              </svg>
+            </button>
+            <div class="dropdown-content">
+              <a href="#" id="undoBtn">Undo</a>
+              <a href="#" id="redoBtn">Redo</a>
+              <a href="#" id="selectAllBtn">Select All</a>
+              <a href="#" id="cutBtn">Cut</a>
+              <a href="#" id="copyBtn">Copy</a>
+              <a href="#" id="pasteBtn">Paste</a>
+            </div>
+          </div>
+
+          <button
+            id="previewToggle"
+            class="p-2 border rounded btn-outline tooltip"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+              <path
+                fill-rule="evenodd"
+                d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span class="tooltiptext">Toggle Preview</span>
+          </button>
+
+          <button id="zoomIn" class="p-2 border rounded btn-outline tooltip">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span class="tooltiptext">Zoom In</span>
+          </button>
+
+          <button id="zoomOut" class="p-2 border rounded btn-outline tooltip">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span class="tooltiptext">Zoom Out</span>
+          </button>
+
+          <span class="text-sm" id="zoomLevel">100%</span>
+        </div>
+
+        <!-- Editor and Preview Area -->
+        <div class="flex-1 flex overflow-hidden">
+          <!-- Editor -->
+          <div id="editorContainer" class="flex-1 p-4 overflow-y-auto">
+            <div id="editor"></div>
+          </div>
+
+          <!-- Preview -->
+          <div
+            id="previewContainer"
+            class="hidden md:block w-1/2 p-4 overflow-y-auto bg-gray-100 dark:bg-gray-800"
+          >
+            <div id="documentPreview" class="flex flex-col items-center">
+              <!-- Pages will be generated here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Table Editor -->
+    <div
+      id="tableModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+    >
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-11/12 max-w-2xl">
+        <h3 class="text-lg font-bold mb-4">Insert Table</h3>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">Rows</label>
+            <input
+              type="number"
+              id="tableRows"
+              value="3"
+              min="1"
+              max="20"
+              class="w-full p-2 border rounded bg-transparent"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Columns</label>
+            <input
+              type="number"
+              id="tableColumns"
+              value="3"
+              min="1"
+              max="10"
+              class="w-full p-2 border rounded bg-transparent"
+            />
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-1">Table Style</label>
+          <select
+            id="tableStyle"
+            class="w-full p-2 border rounded bg-transparent"
+          >
+            <option value="bordered">Bordered</option>
+            <option value="striped">Striped</option>
+            <option value="minimal">Minimal</option>
+            <option value="elegant">Elegant</option>
+          </select>
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-1">Header Row</label>
+          <label class="inline-flex items-center">
+            <input type="checkbox" id="tableHeader" checked class="mr-2" />
+            <span>Include header row</span>
+          </label>
+        </div>
+
+        <div class="flex justify-end space-x-2">
+          <button id="cancelTable" class="px-4 py-2 border rounded btn-outline">
+            Cancel
+          </button>
+          <button id="insertTableBtn" class="px-4 py-2 rounded btn-primary">
+            Insert
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Signature -->
+    <div
+      id="signatureModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+    >
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-11/12 max-w-md">
+        <h3 class="text-lg font-bold mb-4">Add Signature</h3>
+
+        <div class="mb-4">
+          <canvas
+            id="signatureCanvas"
+            class="signature-pad w-full border rounded"
+            height="200"
+          ></canvas>
+        </div>
+
+        <div class="flex justify-between mb-4">
+          <button
+            id="clearSignature"
+            class="px-4 py-2 border rounded btn-outline"
+          >
+            Clear
+          </button>
+          <div>
+            <label class="block text-sm font-medium mb-1">Line Color</label>
+            <input
+              type="color"
+              id="signatureColor"
+              value="#000000"
+              class="color-picker"
+            />
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-2">
+          <button
+            id="cancelSignature"
+            class="px-4 py-2 border rounded btn-outline"
+          >
+            Cancel
+          </button>
+          <button id="addSignatureBtn" class="px-4 py-2 rounded btn-primary">
+            Add Signature
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div
+      id="toast"
+      class="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50"
+    >
+      <span id="toastMessage"></span>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        // Initialize variables
+        let currentZoom = 100;
+        let isDarkMode = false;
+        let isPreviewVisible = window.innerWidth >= 768; // Default to visible on larger screens
+        let currentPage = 1;
+        let signaturePad;
+        let documentSettings = {
+          pageSize: 'a4',
+          orientation: 'portrait',
+          marginTop: 20,
+          marginRight: 20,
+          marginBottom: 20,
+          marginLeft: 20,
+          borderStyle: 'none',
+          borderColor: '#000000',
+          backgroundColor: '#ffffff',
+          headerText: '',
+          footerText: '',
+          watermarkText: '',
+          showPageNumbers: false,
+        };
+
+        // Initialize Quill editor
+        const quill = new Quill('#editor', {
+          theme: 'snow',
+          modules: {
+            toolbar: [
+              [{ header: [1, 2, 3, 4, 5, 6, false] }],
+              ['bold', 'italic', 'underline', 'strike'],
+              [{ color: [] }, { background: [] }],
+              [{ align: [] }],
+              [{ list: 'ordered' }, { list: 'bullet' }],
+              ['link'],
+              ['clean'],
+            ],
+          },
+          placeholder: 'Start writing your document...',
+        });
+
+        // Tab switching
+        document.querySelectorAll('.tab-button').forEach((button) => {
+          button.addEventListener('click', () => {
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab-button').forEach((btn) => {
+              btn.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach((content) => {
+              content.classList.remove('active');
+            });
+
+            // Add active class to clicked tab
+            button.classList.add('active');
+            const tabId = button.getAttribute('data-tab') + '-tab';
+            document.getElementById(tabId).classList.add('active');
+          });
+        });
+
+        // Dark mode toggle
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        darkModeToggle.addEventListener('click', () => {
+          document.body.classList.toggle('dark');
+          isDarkMode = document.body.classList.contains('dark');
+          updatePreview();
+        });
+
+        // Preview toggle
+        const previewToggle = document.getElementById('previewToggle');
+        const editorContainer = document.getElementById('editorContainer');
+        const previewContainer = document.getElementById('previewContainer');
+
+        previewToggle.addEventListener('click', () => {
+          isPreviewVisible = !isPreviewVisible;
+
+          if (isPreviewVisible) {
+            previewContainer.classList.remove('hidden');
+            if (window.innerWidth >= 768) {
+              editorContainer.classList.remove('w-full');
+              editorContainer.classList.add('flex-1');
+            } else {
+              editorContainer.classList.add('hidden');
+            }
+          } else {
+            previewContainer.classList.add('hidden');
+            editorContainer.classList.remove('hidden');
+            editorContainer.classList.add('w-full');
+          }
+
+          updatePreview();
+        });
+
+        // Zoom controls
+        const zoomIn = document.getElementById('zoomIn');
+        const zoomOut = document.getElementById('zoomOut');
+        const zoomLevel = document.getElementById('zoomLevel');
+
+        zoomIn.addEventListener('click', () => {
+          if (currentZoom < 200) {
+            currentZoom += 10;
+            updateZoom();
+          }
+        });
+
+        zoomOut.addEventListener('click', () => {
+          if (currentZoom > 50) {
+            currentZoom -= 10;
+            updateZoom();
+          }
+        });
+
+        function updateZoom() {
+          zoomLevel.textContent = `${currentZoom}%`;
+          document.getElementById('documentPreview').style.transform = `scale(${
+            currentZoom / 100
+          })`;
+          document.getElementById('documentPreview').style.transformOrigin =
+            'top center';
+        }
+
+        // Document settings event listeners
+        document.getElementById('pageSize').addEventListener('change', (e) => {
+          documentSettings.pageSize = e.target.value;
+          updatePreview();
+        });
+
+        document
+          .getElementById('orientationPortrait')
+          .addEventListener('click', () => {
+            documentSettings.orientation = 'portrait';
+            document
+              .getElementById('orientationPortrait')
+              .classList.add('btn-primary');
+            document
+              .getElementById('orientationPortrait')
+              .classList.remove('btn-outline');
+            document
+              .getElementById('orientationLandscape')
+              .classList.add('btn-outline');
+            document
+              .getElementById('orientationLandscape')
+              .classList.remove('btn-primary');
+            updatePreview();
+          });
+
+        document
+          .getElementById('orientationLandscape')
+          .addEventListener('click', () => {
+            documentSettings.orientation = 'landscape';
+            document
+              .getElementById('orientationLandscape')
+              .classList.add('btn-primary');
+            document
+              .getElementById('orientationLandscape')
+              .classList.remove('btn-outline');
+            document
+              .getElementById('orientationPortrait')
+              .classList.add('btn-outline');
+            document
+              .getElementById('orientationPortrait')
+              .classList.remove('btn-primary');
+            updatePreview();
+          });
+
+        document.getElementById('marginTop').addEventListener('change', (e) => {
+          documentSettings.marginTop = parseInt(e.target.value);
+          updatePreview();
+        });
+
+        document
+          .getElementById('marginRight')
+          .addEventListener('change', (e) => {
+            documentSettings.marginRight = parseInt(e.target.value);
+            updatePreview();
+          });
+
+        document
+          .getElementById('marginBottom')
+          .addEventListener('change', (e) => {
+            documentSettings.marginBottom = parseInt(e.target.value);
+            updatePreview();
+          });
+
+        document
+          .getElementById('marginLeft')
+          .addEventListener('change', (e) => {
+            documentSettings.marginLeft = parseInt(e.target.value);
+            updatePreview();
+          });
+
+        document
+          .getElementById('borderStyle')
+          .addEventListener('change', (e) => {
+            documentSettings.borderStyle = e.target.value;
+            updatePreview();
+          });
+
+        document
+          .getElementById('borderColor')
+          .addEventListener('change', (e) => {
+            documentSettings.borderColor = e.target.value;
+            updatePreview();
+          });
+
+        document
+          .getElementById('backgroundColor')
+          .addEventListener('change', (e) => {
+            documentSettings.backgroundColor = e.target.value;
+            updatePreview();
+          });
+
+        document.getElementById('headerText').addEventListener('input', (e) => {
+          documentSettings.headerText = e.target.value;
+          updatePreview();
+        });
+
+        document.getElementById('footerText').addEventListener('input', (e) => {
+          documentSettings.footerText = e.target.value;
+          updatePreview();
+        });
+
+        document
+          .getElementById('watermarkText')
+          .addEventListener('input', (e) => {
+            documentSettings.watermarkText = e.target.value;
+            updatePreview();
+          });
+
+        document
+          .getElementById('showPageNumbers')
+          .addEventListener('change', (e) => {
+            documentSettings.showPageNumbers = e.target.checked;
+            updatePreview();
+          });
+
+        // Insert image
+        document.getElementById('insertImage').addEventListener('click', () => {
+          document.getElementById('imageUpload').click();
+        });
+
+        document
+          .getElementById('imageUpload')
+          .addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = function (event) {
+                insertImageToEditor(event.target.result);
+              };
+              reader.readAsDataURL(file);
+            }
+          });
+
+        // Drag and drop for images
+        const dropzone = document.getElementById('imageDrop');
+
+        dropzone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dropzone.classList.add('active');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+          dropzone.classList.remove('active');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          dropzone.classList.remove('active');
+
+          if (e.dataTransfer.files.length) {
+            const file = e.dataTransfer.files[0];
+            if (file.type.startsWith('image/')) {
+              const reader = new FileReader();
+              reader.onload = function (event) {
+                insertImageToEditor(event.target.result);
+              };
+              reader.readAsDataURL(file);
+            } else {
+              showToast('Please drop an image file');
+            }
+          }
+        });
+
+        function insertImageToEditor(src) {
+          const range = quill.getSelection(true);
+          quill.insertEmbed(range.index, 'image', src);
+          quill.setSelection(range.index + 1);
+          updatePreview();
+          showToast('Image added successfully');
+        }
+
+        // Insert table
+        const tableModal = document.getElementById('tableModal');
+
+        document.getElementById('insertTable').addEventListener('click', () => {
+          tableModal.classList.remove('hidden');
+        });
+
+        document.getElementById('cancelTable').addEventListener('click', () => {
+          tableModal.classList.add('hidden');
+        });
+
+        document
+          .getElementById('insertTableBtn')
+          .addEventListener('click', () => {
+            const rows = parseInt(document.getElementById('tableRows').value);
+            const cols = parseInt(
+              document.getElementById('tableColumns').value
+            );
+            const style = document.getElementById('tableStyle').value;
+            const hasHeader = document.getElementById('tableHeader').checked;
+
+            insertTable(rows, cols, style, hasHeader);
+            tableModal.classList.add('hidden');
+          });
+
+        function insertTable(rows, cols, style, hasHeader) {
+          let tableHTML = '<table class="';
+
+          // Apply table style
+          switch (style) {
+            case 'bordered':
+              tableHTML += 'border-2 border-gray-800 w-full';
+              break;
+            case 'striped':
+              tableHTML += 'w-full border border-gray-300';
+              break;
+            case 'minimal':
+              tableHTML += 'w-full';
+              break;
+            case 'elegant':
+              tableHTML += 'w-full border-2 border-gray-400';
+              break;
+            default:
+              tableHTML += 'w-full border border-gray-300';
+          }
+
+          tableHTML += '">';
+
+          // Create header row if needed
+          if (hasHeader) {
+            tableHTML += '<thead>';
+            tableHTML += '<tr>';
+            for (let i = 0; i < cols; i++) {
+              tableHTML += `<th class="`;
+
+              // Apply header cell style
+              switch (style) {
+                case 'bordered':
+                  tableHTML += 'border border-gray-800 p-2 bg-gray-200';
+                  break;
+                case 'striped':
+                  tableHTML += 'border border-gray-300 p-2 bg-gray-100';
+                  break;
+                case 'minimal':
+                  tableHTML += 'p-2 border-b-2 border-gray-400';
+                  break;
+                case 'elegant':
+                  tableHTML += 'p-2 border-b-2 border-gray-400 bg-gray-50';
+                  break;
+                default:
+                  tableHTML += 'border border-gray-300 p-2';
+              }
+
+              tableHTML += `">Header ${i + 1}</th>`;
+            }
+            tableHTML += '</tr>';
+            tableHTML += '</thead>';
+          }
+
+          // Create table body
+          tableHTML += '<tbody>';
+          for (let i = 0; i < rows; i++) {
+            tableHTML += '<tr';
+
+            // Apply row style for striped tables
+            if (style === 'striped' && i % 2 === 1) {
+              tableHTML += ' class="bg-gray-50"';
+            }
+
+            tableHTML += '>';
+
+            for (let j = 0; j < cols; j++) {
+              tableHTML += `<td class="`;
+
+              // Apply cell style
+              switch (style) {
+                case 'bordered':
+                  tableHTML += 'border border-gray-800 p-2';
+                  break;
+                case 'striped':
+                  tableHTML += 'border border-gray-300 p-2';
+                  break;
+                case 'minimal':
+                  tableHTML += 'p-2 border-b border-gray-200';
+                  break;
+                case 'elegant':
+                  tableHTML += 'p-2 border-b border-gray-200';
+                  break;
+                default:
+                  tableHTML += 'border border-gray-300 p-2';
+              }
+
+              tableHTML += `">Cell ${i + 1}-${j + 1}</td>`;
+            }
+            tableHTML += '</tr>';
+          }
+          tableHTML += '</tbody>';
+          tableHTML += '</table>';
+
+          const range = quill.getSelection(true);
+          quill.clipboard.dangerouslyPasteHTML(range.index, tableHTML);
+          quill.setSelection(range.index + 1);
+          updatePreview();
+          showToast('Table inserted successfully');
+        }
+
+        // Insert signature
+        const signatureModal = document.getElementById('signatureModal');
+
+        document
+          .getElementById('insertSignature')
+          .addEventListener('click', () => {
+            signatureModal.classList.remove('hidden');
+
+            // Initialize signature pad
+            const canvas = document.getElementById('signatureCanvas');
+            signaturePad = new SignaturePad(canvas, {
+              backgroundColor: 'rgba(255, 255, 255, 0)',
+              penColor: document.getElementById('signatureColor').value,
+            });
+
+            // Adjust canvas size
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            signaturePad.clear();
+          });
+
+        document
+          .getElementById('clearSignature')
+          .addEventListener('click', () => {
+            if (signaturePad) {
+              signaturePad.clear();
+            }
+          });
+
+        document
+          .getElementById('signatureColor')
+          .addEventListener('change', (e) => {
+            if (signaturePad) {
+              signaturePad.penColor = e.target.value;
+            }
+          });
+
+        document
+          .getElementById('cancelSignature')
+          .addEventListener('click', () => {
+            signatureModal.classList.add('hidden');
+          });
+
+        document
+          .getElementById('addSignatureBtn')
+          .addEventListener('click', () => {
+            if (signaturePad && !signaturePad.isEmpty()) {
+              const signatureImage = signaturePad.toDataURL();
+              const range = quill.getSelection(true);
+              quill.insertEmbed(range.index, 'image', signatureImage);
+              quill.setSelection(range.index + 1);
+              updatePreview();
+              signatureModal.classList.add('hidden');
+              showToast('Signature added successfully');
+            } else {
+              showToast('Please draw a signature first');
+            }
+          });
+
+        // Insert shapes
+        document.querySelectorAll('.shape-btn').forEach((button) => {
+          button.addEventListener('click', () => {
+            const shapeType = button.getAttribute('data-shape');
+            insertShape(shapeType);
+          });
+        });
+
+        function insertShape(type) {
+          let svgContent = '';
+
+          switch (type) {
+            case 'rectangle':
+              svgContent =
+                '<svg viewBox="0 0 100 60" width="100" height="60"><rect x="5" y="5" width="90" height="50" stroke="black" stroke-width="2" fill="none"/></svg>';
+              break;
+            case 'circle':
+              svgContent =
+                '<svg viewBox="0 0 100 100" width="100" height="100"><circle cx="50" cy="50" r="45" stroke="black" stroke-width="2" fill="none"/></svg>';
+              break;
+            case 'triangle':
+              svgContent =
+                '<svg viewBox="0 0 100 100" width="100" height="100"><polygon points="50,10 90,90 10,90" stroke="black" stroke-width="2" fill="none"/></svg>';
+              break;
+            case 'line':
+              svgContent =
+                '<svg viewBox="0 0 100 20" width="100" height="20"><line x1="5" y1="10" x2="95" y2="10" stroke="black" stroke-width="2"/></svg>';
+              break;
+            default:
+              return;
+          }
+
+          const range = quill.getSelection(true);
+          quill.clipboard.dangerouslyPasteHTML(range.index, svgContent);
+          quill.setSelection(range.index + 1);
+          updatePreview();
+          showToast(
+            `${type.charAt(0).toUpperCase() + type.slice(1)} shape added`
+          );
+        }
+
+        // Insert date
+        document.getElementById('insertDate').addEventListener('click', () => {
+          const today = new Date();
+          const formattedDate = today.toLocaleDateString();
+          const range = quill.getSelection(true);
+          quill.insertText(range.index, formattedDate);
+          quill.setSelection(range.index + formattedDate.length);
+          updatePreview();
+          showToast('Date inserted');
+        });
+
+        // Insert page break
+        document
+          .getElementById('insertPageBreak')
+          .addEventListener('click', () => {
+            const range = quill.getSelection(true);
+            quill.insertText(range.index, '\n');
+            quill.insertEmbed(range.index + 1, 'hr');
+            quill.insertText(range.index + 2, '\n');
+            quill.setSelection(range.index + 3);
+            updatePreview();
+            showToast('Page break inserted');
+          });
+
+        // Export PDF
+        document.getElementById('exportPDF').addEventListener('click', () => {
+          const title =
+            document.getElementById('documentTitle').value ||
+            'Doculus Pro Document';
+          const quality = parseFloat(
+            document.getElementById('pdfQuality').value
+          );
+
+          showToast('Generating PDF...');
+
+          // Clone the preview for export
+          const previewClone = document
+            .getElementById('documentPreview')
+            .cloneNode(true);
+
+          // Remove any controls or handles
+          previewClone
+            .querySelectorAll('.image-controls, .resize-handle')
+            .forEach((el) => {
+              el.remove();
+            });
+
+          // Set up PDF options
+          const opt = {
+            margin: 0,
+            filename: `${title}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: quality, useCORS: true },
+            jsPDF: {
+              unit: 'mm',
+              format: documentSettings.pageSize,
+              orientation: documentSettings.orientation,
+            },
+          };
+
+          // Generate PDF
+          html2pdf()
+            .set(opt)
+            .from(previewClone)
+            .save()
+            .then(() => {
+              showToast('PDF exported successfully');
+            })
+            .catch((err) => {
+              console.error('PDF generation error:', err);
+              showToast('Error generating PDF');
+            });
+        });
+
+        // Save template
+        document
+          .getElementById('saveTemplate')
+          .addEventListener('click', () => {
+            const templateName =
+              document.getElementById('documentTitle').value ||
+              'Untitled Template';
+
+            // In a real app, this would save to a server or local storage
+            // For this demo, we'll just show a success message
+            showToast(`Template "${templateName}" saved successfully`);
+          });
+
+        // Update preview when editor content changes
+        quill.on('text-change', updatePreview);
+
+        // Update preview function
+        function updatePreview() {
+          const previewContainer = document.getElementById('documentPreview');
+          previewContainer.innerHTML = '';
+
+          // Get content from editor
+          const content = quill.root.innerHTML;
+
+          // Split content by page breaks
+          const contentParts = content.split('<hr>');
+
+          // Create pages
+          contentParts.forEach((part, index) => {
+            // Create page
+            const page = document.createElement('div');
+            page.className = 'page bg-white mb-6 fade-in';
+
+            // Set page size
+            const pageSizes = {
+              a4: { width: '210mm', height: '297mm' },
+              letter: { width: '215.9mm', height: '279.4mm' },
+              legal: { width: '215.9mm', height: '355.6mm' },
+              a3: { width: '297mm', height: '420mm' },
+              a5: { width: '148mm', height: '210mm' },
+            };
+
+            const pageSize =
+              pageSizes[documentSettings.pageSize] || pageSizes.a4;
+
+            if (documentSettings.orientation === 'portrait') {
+              page.style.width = pageSize.width;
+              page.style.height = pageSize.height;
+            } else {
+              page.style.width = pageSize.height;
+              page.style.height = pageSize.width;
+            }
+
+            // Apply page styles
+            page.style.backgroundColor = documentSettings.backgroundColor;
+
+            if (documentSettings.borderStyle !== 'none') {
+              page.style.border = `2px ${documentSettings.borderStyle} ${documentSettings.borderColor}`;
+            }
+
+            // Add watermark if specified
+            if (documentSettings.watermarkText) {
+              const watermark = document.createElement('div');
+              watermark.className = 'watermark';
+              watermark.textContent = documentSettings.watermarkText;
+              page.appendChild(watermark);
+            }
+
+            // Add header if specified
+            if (documentSettings.headerText) {
+              const header = document.createElement('div');
+              header.className = 'header';
+              header.innerHTML = documentSettings.headerText;
+              page.appendChild(header);
+            }
+
+            // Create content container with margins
+            const contentContainer = document.createElement('div');
+            contentContainer.className = 'page-content';
+            contentContainer.style.padding = `${documentSettings.marginTop}mm ${documentSettings.marginRight}mm ${documentSettings.marginBottom}mm ${documentSettings.marginLeft}mm`;
+            contentContainer.innerHTML = part;
+            page.appendChild(contentContainer);
+
+            // Add footer if specified
+            if (documentSettings.footerText) {
+              const footer = document.createElement('div');
+              footer.className = 'footer';
+              footer.innerHTML = documentSettings.footerText;
+              page.appendChild(footer);
+            }
+
+            // Add page number if enabled
+            if (documentSettings.showPageNumbers) {
+              const pageNumber = document.createElement('div');
+              pageNumber.className = 'page-number';
+              pageNumber.textContent = `Page ${index + 1}`;
+              page.appendChild(pageNumber);
+            }
+
+            previewContainer.appendChild(page);
+          });
+
+          // If no content, add an empty page
+          if (
+            contentParts.length === 0 ||
+            (contentParts.length === 1 && contentParts[0].trim() === '')
+          ) {
+            const emptyPage = document.createElement('div');
+            emptyPage.className = 'page bg-white mb-6';
+
+            // Set page size
+            const pageSizes = {
+              a4: { width: '210mm', height: '297mm' },
+              letter: { width: '215.9mm', height: '279.4mm' },
+              legal: { width: '215.9mm', height: '355.6mm' },
+              a3: { width: '297mm', height: '420mm' },
+              a5: { width: '148mm', height: '210mm' },
+            };
+
+            const pageSize =
+              pageSizes[documentSettings.pageSize] || pageSizes.a4;
+
+            if (documentSettings.orientation === 'portrait') {
+              emptyPage.style.width = pageSize.width;
+              emptyPage.style.height = pageSize.height;
+            } else {
+              emptyPage.style.width = pageSize.height;
+              emptyPage.style.height = pageSize.width;
+            }
+
+            // Apply page styles
+            emptyPage.style.backgroundColor = documentSettings.backgroundColor;
+
+            if (documentSettings.borderStyle !== 'none') {
+              emptyPage.style.border = `2px ${documentSettings.borderStyle} ${documentSettings.borderColor}`;
+            }
+
+            // Add watermark if specified
+            if (documentSettings.watermarkText) {
+              const watermark = document.createElement('div');
+              watermark.className = 'watermark';
+              watermark.textContent = documentSettings.watermarkText;
+              emptyPage.appendChild(watermark);
+            }
+
+            // Add header if specified
+            if (documentSettings.headerText) {
+              const header = document.createElement('div');
+              header.className = 'header';
+              header.innerHTML = documentSettings.headerText;
+              emptyPage.appendChild(header);
+            }
+
+            // Create content container with margins
+            const contentContainer = document.createElement('div');
+            contentContainer.className = 'page-content';
+            contentContainer.style.padding = `${documentSettings.marginTop}mm ${documentSettings.marginRight}mm ${documentSettings.marginBottom}mm ${documentSettings.marginLeft}mm`;
+            emptyPage.appendChild(contentContainer);
+
+            // Add footer if specified
+            if (documentSettings.footerText) {
+              const footer = document.createElement('div');
+              footer.className = 'footer';
+              footer.innerHTML = documentSettings.footerText;
+              emptyPage.appendChild(footer);
+            }
+
+            // Add page number if enabled
+            if (documentSettings.showPageNumbers) {
+              const pageNumber = document.createElement('div');
+              pageNumber.className = 'page-number';
+              pageNumber.textContent = 'Page 1';
+              emptyPage.appendChild(pageNumber);
+            }
+
+            previewContainer.appendChild(emptyPage);
+          }
+        }
+
+        // Toast notification
+        function showToast(message) {
+          const toast = document.getElementById('toast');
+          const toastMessage = document.getElementById('toastMessage');
+
+          toastMessage.textContent = message;
+          toast.classList.remove('translate-y-20', 'opacity-0');
+
+          setTimeout(() => {
+            toast.classList.add('translate-y-20', 'opacity-0');
+          }, 3000);
+        }
+
+        // Initialize preview
+        updatePreview();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+          if (window.innerWidth < 768) {
+            if (isPreviewVisible) {
+              editorContainer.classList.add('hidden');
+            } else {
+              previewContainer.classList.add('hidden');
+            }
+          } else {
+            editorContainer.classList.remove('hidden');
+            if (isPreviewVisible) {
+              previewContainer.classList.remove('hidden');
+            }
+          }
+        });
+
+        // Editor toolbar functionality
+        document.getElementById('undoBtn').addEventListener('click', (e) => {
+          e.preventDefault();
+          quill.history.undo();
+        });
+
+        document.getElementById('redoBtn').addEventListener('click', (e) => {
+          e.preventDefault();
+          quill.history.redo();
+        });
+
+        document
+          .getElementById('selectAllBtn')
+          .addEventListener('click', (e) => {
+            e.preventDefault();
+            quill.setSelection(0, quill.getLength());
+          });
+
+        document.getElementById('cutBtn').addEventListener('click', (e) => {
+          e.preventDefault();
+          const range = quill.getSelection();
+          if (range) {
+            const text = quill.getText(range.index, range.length);
+            navigator.clipboard.writeText(text).then(() => {
+              quill.deleteText(range.index, range.length);
+            });
+          }
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', (e) => {
+          e.preventDefault();
+          const range = quill.getSelection();
+          if (range) {
+            const text = quill.getText(range.index, range.length);
+            navigator.clipboard.writeText(text);
+          }
+        });
+
+        document.getElementById('pasteBtn').addEventListener('click', (e) => {
+          e.preventDefault();
+          navigator.clipboard.readText().then((text) => {
+            const range = quill.getSelection(true);
+            quill.insertText(range.index, text);
+          });
+        });
+      });
+    </script>
+    <script>
+      (function () {
+        function c() {
+          var b = a.contentDocument || a.contentWindow.document;
+          if (b) {
+            var d = b.createElement('script');
+            d.innerHTML =
+              "window.__CF$cv$params={r:'95b3521bc239937f',t:'MTc1MTg0OTE0NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+            b.getElementsByTagName('head')[0].appendChild(d);
+          }
+        }
+        if (document.body) {
+          var a = document.createElement('iframe');
+          a.height = 1;
+          a.width = 1;
+          a.style.position = 'absolute';
+          a.style.top = 0;
+          a.style.left = 0;
+          a.style.border = 'none';
+          a.style.visibility = 'hidden';
+          document.body.appendChild(a);
+          if ('loading' !== document.readyState) c();
+          else if (window.addEventListener)
+            document.addEventListener('DOMContentLoaded', c);
+          else {
+            var e = document.onreadystatechange || function () {};
+            document.onreadystatechange = function (b) {
+              e(b);
+              'loading' !== document.readyState &&
+                ((document.onreadystatechange = e), c());
+            };
+          }
+        }
+      })();
+    </script>
+  </body>
+</html>
