@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PDF Stamper - Doculus Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+    <style>
+      .drag-over {
+        border-color: #ef4444 !important;
+        background-color: #fef2f2 !important;
+      }
+      .preview-container {
+        max-height: 500px;
+        overflow-y: auto;
+      }
+      .page-preview {
+        border: 2px solid transparent;
+        transition: all 0.2s;
+        position: relative;
+      }
+      .page-preview.selected {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+      }
+      .page-canvas {
+        max-width: 100%;
+        height: auto;
+        border-radius: 4px;
+      }
+      .stamp-overlay {
+        position: absolute;
+        pointer-events: none;
+        z-index: 10;
+        transition: all 0.3s ease;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <header class="header fixed top-0 left-0 w-full z-50 bg-white shadow-sm">
+      <div class="container mx-auto px-2 sm:px-4">
+        <div class="flex items-center justify-between h-[60px] sm:h-[70px]">
+          <!-- Logo -->
+          <div class="flex items-center">
+            <a href="#" class="flex items-center">
+              <img
+                src="../images/D3.png"
+                alt="Doculus Pro"
+                class="w-14 h-14 sm:w-20 sm:h-20 object-contain"
+              />
+              <span
+                class="ml-1 sm:ml-2 text-lg sm:text-xl font-bold text-gray-800"
+                >Doculus Pro</span
+              >
+            </a>
+          </div>
+
+          <!-- Desktop Nav -->
+          <nav class="hidden md:flex items-center space-x-6">
+            <a
+              href="../index.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Home</a
+            >
+            <a
+              href="../Merge_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Merge PDF</a
+            >
+            <a
+              href="../Split_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Split PDF</a
+            >
+            <a
+              href="../Compress_PDF.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >Compress PDF</a
+            >
+            <a
+              href="../all_pdf.html"
+              class="nav-link text-gray-700 hover:text-red-500 font-medium"
+              >All PDF Tools</a
+            >
+          </nav>
+
+          <!-- Mobile Menu Button -->
+          <div class="md:hidden">
+            <button
+              id="menu-toggle"
+              class="focus:outline-none"
+              aria-label="Toggle menu"
+            >
+              <div class="hamburger">
+                <div class="w-6 h-0.5 bg-gray-700 mb-1.5"></div>
+                <div class="w-6 h-0.5 bg-gray-700 mb-1.5"></div>
+                <div class="w-6 h-0.5 bg-gray-700"></div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div
+        id="mobile-menu"
+        class="mobile-menu fixed top-[70px] left-0 w-full h-[calc(100vh-70px)] bg-white z-40 md:hidden hidden"
+      >
+        <div class="p-4">
+          <nav class="space-y-1">
+            <a
+              href="../index.html"
+              class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+              >Home</a
+            >
+            <a
+              href="../Merge_PDF.html"
+              class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+              >Merge PDF</a
+            >
+            <a
+              href="../Split_PDF.html"
+              class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+              >Split PDF</a
+            >
+            <a
+              href="../Compress_PDF.html"
+              class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+              >Compress PDF</a
+            >
+            <a
+              href="../all_pdf.html"
+              class="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-md"
+              >All PDF Tools</a
+            >
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="pt-[70px] sm:pt-[80px] pb-8">
+      <div class="container mx-auto px-4 max-w-6xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+          <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">
+            PDF Stamper
+          </h1>
+          <p class="text-gray-600 text-lg">
+            Add custom text or image stamps to your PDF documents
+          </p>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+          <div
+            id="upload-area"
+            class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-red-400 transition-colors cursor-pointer"
+          >
+            <div class="mb-4">
+              <svg
+                class="mx-auto h-12 w-12 text-gray-400"
+                stroke="currentColor"
+                fill="none"
+                viewBox="0 0 48 48"
+              >
+                <path
+                  d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+            <p class="text-xl font-medium text-gray-700 mb-2">
+              Drop your PDF here or click to browse
+            </p>
+            <p class="text-gray-500">Supports PDF files up to 50MB</p>
+            <input type="file" id="pdf-input" accept=".pdf" class="hidden" />
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div id="main-content" class="hidden">
+          <div class="grid lg:grid-cols-2 gap-8">
+            <!-- Controls Panel -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+              <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                Stamp Settings
+              </h2>
+
+              <!-- Stamp Type -->
+              <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-3"
+                  >Stamp Type</label
+                >
+                <div class="flex space-x-4">
+                  <button
+                    id="text-stamp-btn"
+                    class="flex-1 py-3 px-4 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+                  >
+                    Text Stamp
+                  </button>
+                  <button
+                    id="image-stamp-btn"
+                    class="flex-1 py-3 px-4 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                  >
+                    Image Stamp
+                  </button>
+                </div>
+              </div>
+
+              <!-- Text Stamp Settings -->
+              <div id="text-settings">
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >Stamp Text</label
+                  >
+                  <input
+                    type="text"
+                    id="stamp-text"
+                    value="CONFIDENTIAL"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  />
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2"
+                      >Font Size</label
+                    >
+                    <input
+                      type="range"
+                      id="font-size"
+                      min="12"
+                      max="72"
+                      value="36"
+                      class="w-full"
+                    />
+                    <span id="font-size-value" class="text-sm text-gray-600"
+                      >36px</span
+                    >
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2"
+                      >Text Color</label
+                    >
+                    <input
+                      type="color"
+                      id="text-color"
+                      value="#ff0000"
+                      class="w-full h-10 rounded-lg border border-gray-300"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Image Stamp Settings -->
+              <div id="image-settings" class="hidden">
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >Upload Image</label
+                  >
+                  <input
+                    type="file"
+                    id="stamp-image"
+                    accept="image/*"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >Image Scale</label
+                  >
+                  <input
+                    type="range"
+                    id="image-scale"
+                    min="0.1"
+                    max="2"
+                    step="0.1"
+                    value="0.5"
+                    class="w-full"
+                  />
+                  <span id="image-scale-value" class="text-sm text-gray-600"
+                    >50%</span
+                  >
+                </div>
+              </div>
+
+              <!-- Common Settings -->
+              <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >Opacity</label
+                  >
+                  <input
+                    type="range"
+                    id="opacity"
+                    min="0.1"
+                    max="1"
+                    step="0.1"
+                    value="0.7"
+                    class="w-full"
+                  />
+                  <span id="opacity-value" class="text-sm text-gray-600"
+                    >70%</span
+                  >
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >Rotation</label
+                  >
+                  <input
+                    type="range"
+                    id="rotation"
+                    min="0"
+                    max="360"
+                    value="0"
+                    class="w-full"
+                  />
+                  <span id="rotation-value" class="text-sm text-gray-600"
+                    >0°</span
+                  >
+                </div>
+              </div>
+
+              <!-- Position -->
+              <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-3"
+                  >Position</label
+                >
+                <div class="grid grid-cols-3 gap-2">
+                  <button
+                    class="position-btn py-2 px-3 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200"
+                    data-position="top-left"
+                  >
+                    Top Left
+                  </button>
+                  <button
+                    class="position-btn py-2 px-3 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200"
+                    data-position="top-center"
+                  >
+                    Top Center
+                  </button>
+                  <button
+                    class="position-btn py-2 px-3 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200"
+                    data-position="top-right"
+                  >
+                    Top Right
+                  </button>
+                  <button
+                    class="position-btn py-2 px-3 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200"
+                    data-position="center-left"
+                  >
+                    Center Left
+                  </button>
+                  <button
+                    class="position-btn py-2 px-3 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600"
+                    data-position="center"
+                  >
+                    Center
+                  </button>
+                  <button
+                    class="position-btn py-2 px-3 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200"
+                    data-position="center-right"
+                  >
+                    Center Right
+                  </button>
+                  <button
+                    class="position-btn py-2 px-3 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200"
+                    data-position="bottom-left"
+                  >
+                    Bottom Left
+                  </button>
+                  <button
+                    class="position-btn py-2 px-3 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200"
+                    data-position="bottom-center"
+                  >
+                    Bottom Center
+                  </button>
+                  <button
+                    class="position-btn py-2 px-3 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200"
+                    data-position="bottom-right"
+                  >
+                    Bottom Right
+                  </button>
+                </div>
+              </div>
+
+              <!-- Page Selection -->
+              <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-3"
+                  >Apply to Pages</label
+                >
+                <div class="flex space-x-4 mb-3">
+                  <button
+                    id="all-pages-btn"
+                    class="py-2 px-4 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+                  >
+                    All Pages
+                  </button>
+                  <button
+                    id="select-pages-btn"
+                    class="py-2 px-4 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                  >
+                    Select Pages
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  id="page-range"
+                  placeholder="e.g., 1,3,5-8"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 hidden"
+                />
+              </div>
+
+              <!-- Apply Button -->
+              <button
+                id="apply-stamp"
+                class="w-full py-3 px-6 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors"
+              >
+                Apply Stamp & Download
+              </button>
+            </div>
+
+            <!-- Preview Panel -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+              <h2 class="text-2xl font-bold text-gray-800 mb-6">PDF Preview</h2>
+              <div id="pdf-info" class="mb-4 p-3 bg-gray-50 rounded-lg hidden">
+                <p class="text-sm text-gray-600">
+                  <span class="font-medium">File:</span>
+                  <span id="file-name"></span>
+                </p>
+                <p class="text-sm text-gray-600">
+                  <span class="font-medium">Pages:</span>
+                  <span id="page-count"></span>
+                </p>
+              </div>
+              <div
+                id="pdf-preview"
+                class="preview-container border border-gray-200 rounded-lg p-4 bg-gray-50"
+              >
+                <p class="text-gray-500 text-center">
+                  Upload a PDF to see preview
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div
+          id="loading"
+          class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        >
+          <div class="bg-white rounded-lg p-6 text-center">
+            <div
+              class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"
+            ></div>
+            <p class="text-gray-700">Processing your PDF...</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      let currentPdf = null;
+      let currentPdfFile = null;
+      let currentStampType = 'text';
+      let selectedPosition = 'center';
+      let selectedPages = 'all';
+      let stampImage = null;
+      let pdfPages = [];
+      let previewCanvases = [];
+
+      // Mobile menu toggle
+      document
+        .getElementById('menu-toggle')
+        .addEventListener('click', function () {
+          const mobileMenu = document.getElementById('mobile-menu');
+          mobileMenu.classList.toggle('hidden');
+        });
+
+      // File upload handling
+      const uploadArea = document.getElementById('upload-area');
+      const pdfInput = document.getElementById('pdf-input');
+
+      uploadArea.addEventListener('click', () => pdfInput.click());
+      uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('drag-over');
+      });
+      uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('drag-over');
+      });
+      uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('drag-over');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) handleFileUpload(files[0]);
+      });
+
+      pdfInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) handleFileUpload(e.target.files[0]);
+      });
+
+      // Stamp type toggle
+      document
+        .getElementById('text-stamp-btn')
+        .addEventListener('click', () => {
+          currentStampType = 'text';
+          document.getElementById('text-stamp-btn').className =
+            'flex-1 py-3 px-4 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors';
+          document.getElementById('image-stamp-btn').className =
+            'flex-1 py-3 px-4 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors';
+          document.getElementById('text-settings').classList.remove('hidden');
+          document.getElementById('image-settings').classList.add('hidden');
+          updatePreviewStamps();
+        });
+
+      document
+        .getElementById('image-stamp-btn')
+        .addEventListener('click', () => {
+          currentStampType = 'image';
+          document.getElementById('image-stamp-btn').className =
+            'flex-1 py-3 px-4 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors';
+          document.getElementById('text-stamp-btn').className =
+            'flex-1 py-3 px-4 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors';
+          document.getElementById('image-settings').classList.remove('hidden');
+          document.getElementById('text-settings').classList.add('hidden');
+          updatePreviewStamps();
+        });
+
+      // Range input updates
+      document.getElementById('font-size').addEventListener('input', (e) => {
+        document.getElementById('font-size-value').textContent =
+          e.target.value + 'px';
+        updatePreviewStamps();
+      });
+
+      document.getElementById('opacity').addEventListener('input', (e) => {
+        document.getElementById('opacity-value').textContent =
+          Math.round(e.target.value * 100) + '%';
+        updatePreviewStamps();
+      });
+
+      document.getElementById('rotation').addEventListener('input', (e) => {
+        document.getElementById('rotation-value').textContent =
+          e.target.value + '°';
+        updatePreviewStamps();
+      });
+
+      document.getElementById('image-scale').addEventListener('input', (e) => {
+        document.getElementById('image-scale-value').textContent =
+          Math.round(e.target.value * 100) + '%';
+        updatePreviewStamps();
+      });
+
+      // Text and color updates
+      document
+        .getElementById('stamp-text')
+        .addEventListener('input', updatePreviewStamps);
+      document
+        .getElementById('text-color')
+        .addEventListener('input', updatePreviewStamps);
+
+      // Position buttons
+      document.querySelectorAll('.position-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.position-btn').forEach((b) => {
+            b.className =
+              'position-btn py-2 px-3 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200';
+          });
+          btn.className =
+            'position-btn py-2 px-3 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600';
+          selectedPosition = btn.dataset.position;
+          updatePreviewStamps();
+        });
+      });
+
+      // Page selection
+      document.getElementById('all-pages-btn').addEventListener('click', () => {
+        selectedPages = 'all';
+        document.getElementById('all-pages-btn').className =
+          'py-2 px-4 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors';
+        document.getElementById('select-pages-btn').className =
+          'py-2 px-4 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors';
+        document.getElementById('page-range').classList.add('hidden');
+      });
+
+      document
+        .getElementById('select-pages-btn')
+        .addEventListener('click', () => {
+          selectedPages = 'custom';
+          document.getElementById('select-pages-btn').className =
+            'py-2 px-4 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors';
+          document.getElementById('all-pages-btn').className =
+            'py-2 px-4 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors';
+          document.getElementById('page-range').classList.remove('hidden');
+        });
+
+      // Image upload for stamp
+      document.getElementById('stamp-image').addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          const file = e.target.files[0];
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            stampImage = e.target.result;
+            updatePreviewStamps();
+          };
+          reader.readAsArrayBuffer(file);
+        }
+      });
+
+      // Apply stamp
+      document
+        .getElementById('apply-stamp')
+        .addEventListener('click', applyStamp);
+
+      async function handleFileUpload(file) {
+        if (file.type !== 'application/pdf') {
+          alert('Please select a PDF file.');
+          return;
+        }
+
+        document.getElementById('loading').classList.remove('hidden');
+
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          currentPdf = await PDFLib.PDFDocument.load(arrayBuffer);
+          currentPdfFile = arrayBuffer;
+
+          document.getElementById('file-name').textContent = file.name;
+          document.getElementById('page-count').textContent =
+            currentPdf.getPageCount();
+          document.getElementById('pdf-info').classList.remove('hidden');
+          document.getElementById('main-content').classList.remove('hidden');
+
+          // Generate preview with PDF.js
+          await generatePreview();
+        } catch (error) {
+          alert('Error loading PDF: ' + error.message);
+        } finally {
+          document.getElementById('loading').classList.add('hidden');
+        }
+      }
+
+      async function generatePreview() {
+        const previewContainer = document.getElementById('pdf-preview');
+        previewContainer.innerHTML = '';
+        pdfPages = [];
+        previewCanvases = [];
+
+        try {
+          // Set up PDF.js worker
+          pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+
+          const pdf = await pdfjsLib.getDocument({ data: currentPdfFile })
+            .promise;
+          const pageCount = pdf.numPages;
+          const maxPages = Math.min(pageCount, 3); // Show first 3 pages
+
+          for (let i = 1; i <= maxPages; i++) {
+            const page = await pdf.getPage(i);
+            pdfPages.push(page);
+
+            const viewport = page.getViewport({ scale: 0.5 });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            canvas.className = 'page-canvas';
+
+            await page.render({
+              canvasContext: context,
+              viewport: viewport,
+            }).promise;
+
+            const pageDiv = document.createElement('div');
+            pageDiv.className =
+              'page-preview bg-white border rounded-lg p-4 mb-3 relative';
+            pageDiv.innerHTML = `
+                        <div class="text-center">
+                            <div class="relative inline-block">
+                                ${canvas.outerHTML}
+                                <div class="stamp-overlay" id="stamp-overlay-${
+                                  i - 1
+                                }"></div>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-2">Page ${i}</p>
+                        </div>
+                    `;
+
+            previewContainer.appendChild(pageDiv);
+            previewCanvases.push(canvas);
+          }
+
+          if (pageCount > maxPages) {
+            const moreDiv = document.createElement('div');
+            moreDiv.className = 'text-center text-gray-500 text-sm mt-4';
+            moreDiv.textContent = `... and ${pageCount - maxPages} more pages`;
+            previewContainer.appendChild(moreDiv);
+          }
+
+          // Initial stamp preview
+          updatePreviewStamps();
+        } catch (error) {
+          console.error('Error generating preview:', error);
+          previewContainer.innerHTML =
+            '<p class="text-red-500 text-center">Error loading PDF preview</p>';
+        }
+      }
+
+      function updatePreviewStamps() {
+        if (!currentPdf || previewCanvases.length === 0) return;
+
+        const text = document.getElementById('stamp-text').value;
+        const fontSize = parseInt(document.getElementById('font-size').value);
+        const color = document.getElementById('text-color').value;
+        const opacity = parseFloat(document.getElementById('opacity').value);
+        const rotation = parseInt(document.getElementById('rotation').value);
+        const imageScale = parseFloat(
+          document.getElementById('image-scale').value
+        );
+
+        previewCanvases.forEach((canvas, index) => {
+          const overlay = document.getElementById(`stamp-overlay-${index}`);
+          if (!overlay) return;
+
+          overlay.innerHTML = '';
+
+          // Calculate position on canvas
+          const canvasRect = canvas.getBoundingClientRect();
+          const position = getPreviewStampPosition(
+            canvas.width,
+            canvas.height,
+            selectedPosition
+          );
+
+          if (currentStampType === 'text' && text) {
+            const stampElement = document.createElement('div');
+            stampElement.style.cssText = `
+                        position: absolute;
+                        left: ${position.x}px;
+                        top: ${position.y}px;
+                        transform: translate(-50%, -50%) rotate(${rotation}deg);
+                        font-size: ${fontSize * 0.5}px;
+                        color: ${color};
+                        opacity: ${opacity};
+                        font-weight: bold;
+                        font-family: Arial, sans-serif;
+                        white-space: nowrap;
+                        pointer-events: none;
+                        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+                    `;
+            stampElement.textContent = text;
+            overlay.appendChild(stampElement);
+          } else if (currentStampType === 'image' && stampImage) {
+            // Create image preview
+            const img = document.createElement('img');
+            const blob = new Blob([stampImage]);
+            const url = URL.createObjectURL(blob);
+
+            img.onload = () => {
+              const stampElement = document.createElement('div');
+              stampElement.style.cssText = `
+                            position: absolute;
+                            left: ${position.x}px;
+                            top: ${position.y}px;
+                            transform: translate(-50%, -50%) rotate(${rotation}deg) scale(${
+                imageScale * 0.5
+              });
+                            opacity: ${opacity};
+                            pointer-events: none;
+                        `;
+              stampElement.appendChild(img);
+              overlay.appendChild(stampElement);
+              URL.revokeObjectURL(url);
+            };
+
+            img.src = url;
+            img.style.maxWidth = '100px';
+            img.style.maxHeight = '100px';
+          }
+        });
+      }
+
+      function getPreviewStampPosition(width, height, position) {
+        const positions = {
+          'top-left': { x: width * 0.15, y: height * 0.15 },
+          'top-center': { x: width * 0.5, y: height * 0.15 },
+          'top-right': { x: width * 0.85, y: height * 0.15 },
+          'center-left': { x: width * 0.15, y: height * 0.5 },
+          center: { x: width * 0.5, y: height * 0.5 },
+          'center-right': { x: width * 0.85, y: height * 0.5 },
+          'bottom-left': { x: width * 0.15, y: height * 0.85 },
+          'bottom-center': { x: width * 0.5, y: height * 0.85 },
+          'bottom-right': { x: width * 0.85, y: height * 0.85 },
+        };
+        return positions[position] || positions['center'];
+      }
+
+      function parsePageRange(rangeStr, totalPages) {
+        const pages = new Set();
+        const parts = rangeStr.split(',');
+
+        for (const part of parts) {
+          const trimmed = part.trim();
+          if (trimmed.includes('-')) {
+            const [start, end] = trimmed
+              .split('-')
+              .map((n) => parseInt(n.trim()));
+            for (let i = start; i <= Math.min(end, totalPages); i++) {
+              if (i >= 1) pages.add(i - 1); // Convert to 0-based index
+            }
+          } else {
+            const pageNum = parseInt(trimmed);
+            if (pageNum >= 1 && pageNum <= totalPages) {
+              pages.add(pageNum - 1); // Convert to 0-based index
+            }
+          }
+        }
+
+        return Array.from(pages);
+      }
+
+      function getStampPosition(page, position) {
+        const { width, height } = page.getSize();
+        const positions = {
+          'top-left': { x: 50, y: height - 50 },
+          'top-center': { x: width / 2, y: height - 50 },
+          'top-right': { x: width - 50, y: height - 50 },
+          'center-left': { x: 50, y: height / 2 },
+          center: { x: width / 2, y: height / 2 },
+          'center-right': { x: width - 50, y: height / 2 },
+          'bottom-left': { x: 50, y: 50 },
+          'bottom-center': { x: width / 2, y: 50 },
+          'bottom-right': { x: width - 50, y: 50 },
+        };
+        return positions[position] || positions['center'];
+      }
+
+      async function applyStamp() {
+        if (!currentPdf) {
+          alert('Please upload a PDF first.');
+          return;
+        }
+
+        if (currentStampType === 'image' && !stampImage) {
+          alert('Please upload an image for the stamp.');
+          return;
+        }
+
+        document.getElementById('loading').classList.remove('hidden');
+
+        try {
+          const pdfDoc = await PDFLib.PDFDocument.create();
+          const pages = await pdfDoc.copyPages(
+            currentPdf,
+            currentPdf.getPageIndices()
+          );
+
+          // Determine which pages to stamp
+          let pagesToStamp;
+          if (selectedPages === 'all') {
+            pagesToStamp = Array.from({ length: pages.length }, (_, i) => i);
+          } else {
+            const rangeStr = document.getElementById('page-range').value;
+            pagesToStamp = parsePageRange(rangeStr, pages.length);
+          }
+
+          // Add pages and apply stamps
+          for (let i = 0; i < pages.length; i++) {
+            const page = pdfDoc.addPage(pages[i]);
+
+            if (pagesToStamp.includes(i)) {
+              const position = getStampPosition(page, selectedPosition);
+              const opacity = parseFloat(
+                document.getElementById('opacity').value
+              );
+              const rotation = parseInt(
+                document.getElementById('rotation').value
+              );
+
+              if (currentStampType === 'text') {
+                const text = document.getElementById('stamp-text').value;
+                const fontSize = parseInt(
+                  document.getElementById('font-size').value
+                );
+                const color = document.getElementById('text-color').value;
+
+                // Convert hex color to RGB
+                const r = parseInt(color.substr(1, 2), 16) / 255;
+                const g = parseInt(color.substr(3, 2), 16) / 255;
+                const b = parseInt(color.substr(5, 2), 16) / 255;
+
+                page.drawText(text, {
+                  x: position.x,
+                  y: position.y,
+                  size: fontSize,
+                  color: PDFLib.rgb(r, g, b),
+                  opacity: opacity,
+                  rotate: PDFLib.degrees(rotation),
+                });
+              } else if (currentStampType === 'image' && stampImage) {
+                const scale = parseFloat(
+                  document.getElementById('image-scale').value
+                );
+
+                // Determine image type and embed
+                let image;
+                const uint8Array = new Uint8Array(stampImage);
+
+                // Check if it's PNG or JPEG
+                if (uint8Array[0] === 0x89 && uint8Array[1] === 0x50) {
+                  image = await pdfDoc.embedPng(stampImage);
+                } else {
+                  image = await pdfDoc.embedJpg(stampImage);
+                }
+
+                const dims = image.scale(scale);
+
+                page.drawImage(image, {
+                  x: position.x - dims.width / 2,
+                  y: position.y - dims.height / 2,
+                  width: dims.width,
+                  height: dims.height,
+                  opacity: opacity,
+                  rotate: PDFLib.degrees(rotation),
+                });
+              }
+            }
+          }
+
+          // Save and download
+          const pdfBytes = await pdfDoc.save();
+          const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+          const url = URL.createObjectURL(blob);
+
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'stamped.pdf';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        } catch (error) {
+          alert('Error applying stamp: ' + error.message);
+        } finally {
+          document.getElementById('loading').classList.add('hidden');
+        }
+      }
+    </script>
+    <script>
+      (function () {
+        function c() {
+          var b = a.contentDocument || a.contentWindow.document;
+          if (b) {
+            var d = b.createElement('script');
+            d.innerHTML =
+              "window.__CF$cv$params={r:'96f93bad10ca6efe',t:'MTc1NTI2NjU4Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+            b.getElementsByTagName('head')[0].appendChild(d);
+          }
+        }
+        if (document.body) {
+          var a = document.createElement('iframe');
+          a.height = 1;
+          a.width = 1;
+          a.style.position = 'absolute';
+          a.style.top = 0;
+          a.style.left = 0;
+          a.style.border = 'none';
+          a.style.visibility = 'hidden';
+          document.body.appendChild(a);
+          if ('loading' !== document.readyState) c();
+          else if (window.addEventListener)
+            document.addEventListener('DOMContentLoaded', c);
+          else {
+            var e = document.onreadystatechange || function () {};
+            document.onreadystatechange = function (b) {
+              e(b);
+              'loading' !== document.readyState &&
+                ((document.onreadystatechange = e), c());
+            };
+          }
+        }
+      })();
+    </script>
+  </body>
+</html>
